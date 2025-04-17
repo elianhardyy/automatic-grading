@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   View,
   Image,
@@ -6,46 +6,12 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  TouchableOpacity,
 } from "react-native";
-import Input from "../../components/common/Input";
-import Button from "../../components/common/Button";
+
 import { fonts } from "../../utils/font";
+import RegisterForm from "../../components/auth/RegisterForm";
 
 const RegisterScreen = ({ navigation }) => {
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [isFormValid, setIsFormValid] = useState(false);
-
-  // Check if form is valid whenever username or password changes
-  useEffect(() => {
-    setIsFormValid(
-      email.trim() !== "" &&
-        username.trim() !== "" &&
-        password.trim() !== "" &&
-        confirmPassword.trim() !== ""
-    );
-  }, [email, username, password, confirmPassword]);
-
-  const validate = () => {
-    const newErrors = {};
-
-    if (!username.trim()) newErrors.username = "Username is required";
-
-    if (!password.trim()) newErrors.password = "Password is required";
-    else if (password.length < 6)
-      newErrors.password = "Password must be at least 6 characters";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  const navigateToLogin = () => {
-    navigation.navigate("LoginScreen");
-  };
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-white"
@@ -73,67 +39,7 @@ const RegisterScreen = ({ navigation }) => {
                 Create a new account
               </Text>
             </View>
-            <View className="w-full">
-              <Input
-                label="Email"
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Email"
-                keyboardType="email-address"
-                variant="rounded"
-                autoCapitalize="none"
-                className="mb-4"
-              />
-              <Input
-                label="Username"
-                value={username}
-                onChangeText={setUsername}
-                placeholder="Username"
-                keyboardType="default"
-                error={errors.username}
-                variant="rounded"
-                className="mb-4"
-              />
-              <Input
-                label="Password"
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Password"
-                secureTextEntry
-                error={errors.password}
-                variant="rounded"
-                className="mb-4"
-              />
-              <Input
-                label="Confirm Password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Confirm Password"
-                secureTextEntry
-                error={errors.password}
-                variant="rounded"
-                className="mb-4"
-              />
-              <Button
-                title={loading ? "Loading..." : "Register"}
-                disabled={loading || !isFormValid}
-                className={
-                  !isFormValid ? "bg-neutral-300 border-neutral-100" : ""
-                }
-                textClassName={!isFormValid ? "text-neutral-500" : ""}
-                onPress={() => {
-                  if (validate()) {
-                    setLoading(true);
-                  }
-                }}
-              />
-              <View className="flex-row justify-between items-center mt-4">
-                <Text className="text-neutral-600">Don't have an account?</Text>
-                <TouchableOpacity onPress={navigateToLogin}>
-                  <Text className="text-primary-500">Sign In</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            <RegisterForm navigation={navigation} />
           </View>
         </ScrollView>
 
