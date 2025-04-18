@@ -1,4 +1,5 @@
 import React from "react";
+import { View, Text } from "react-native";
 
 const VARIANTS = {
   info: "bg-info-50 border-info-500",

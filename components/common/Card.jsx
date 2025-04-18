@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Image, TouchableOpacity, Animated } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 const Card = ({
