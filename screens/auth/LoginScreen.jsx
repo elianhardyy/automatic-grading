@@ -7,40 +7,16 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import { fonts } from "../../utils/font";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser, resetAuthError } from "../../redux/slice/auth";
+import LoginForm from "../../components/auth/LoginForm";
 
 const LoginScreen = ({ navigation }) => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [isFormValid, setIsFormValid] = useState(false);
-
-  // Check if form is valid whenever username or password changes
-  useEffect(() => {
-    setIsFormValid(username.trim() !== "" && password.trim() !== "");
-  }, [username, password]);
-
-  const validate = () => {
-    const newErrors = {};
-
-    if (!username.trim()) newErrors.username = "Username is required";
-
-    if (!password.trim()) newErrors.password = "Password is required";
-    else if (password.length < 6)
-      newErrors.password = "Password must be at least 6 characters";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const navigateToRegister = () => {
-    navigation.navigate("RegisterScreen");
-  };
-
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-white"
@@ -68,48 +44,8 @@ const LoginScreen = ({ navigation }) => {
                 Please login to your account
               </Text>
             </View>
-            <View className="w-full">
-              <Input
-                label="Username"
-                value={username}
-                onChangeText={setUsername}
-                placeholder="Username"
-                keyboardType="default"
-                error={errors.username}
-                variant="rounded"
-                className="mb-4"
-              />
-              <Input
-                label="Password"
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Password"
-                secureTextEntry
-                error={errors.password}
-                variant="rounded"
-                className="mb-4"
-              />
-              <Button
-                title={loading ? "Loading..." : "Login"}
-                disabled={loading || !isFormValid}
-                // style={!isFormValid ? { backgroundColor: "#D1D5DB" } : {}}
-                className={
-                  !isFormValid ? "bg-neutral-300 border-neutral-100" : ""
-                }
-                textClassName={!isFormValid ? "text-neutral-500" : ""}
-                onPress={() => {
-                  if (validate()) {
-                    setLoading(true);
-                  }
-                }}
-              />
-              <View className="flex-row justify-between items-center mt-4">
-                <Text className="text-neutral-600">Don't have an account?</Text>
-                <TouchableOpacity onPress={navigateToRegister}>
-                  <Text className="text-primary-500">Sign Up</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            {/* ini form login */}
+            <LoginForm navigation={navigation} />
           </View>
         </ScrollView>
 

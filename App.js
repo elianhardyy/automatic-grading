@@ -7,7 +7,9 @@ import * as SplashScreen from "expo-splash-screen";
 import { fonts } from "./utils/font";
 import Main from "./Main";
 import { NavigationContainer } from "@react-navigation/native";
-
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 SplashScreen.preventAutoHideAsync();
 export default function App() {
   const [loaded, error] = useFonts({
@@ -26,9 +28,14 @@ export default function App() {
     return null;
   }
   return (
-    <NavigationContainer>
-      <Main />
-    </NavigationContainer>
+    <Provider store={store}>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <StatusBar style="auto" />
+          <Main />
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </Provider>
   );
 }
 
