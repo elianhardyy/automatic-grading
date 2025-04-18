@@ -52,7 +52,14 @@ const Input = ({
         {...props}
       />
 
-      {error && <Text className="text-alert-500 text-xs mt-1">{error}</Text>}
+      {error && (
+        <Text
+          className="text-alert-500 text-xs mb-2"
+          style={{ marginTop: -10 }}
+        >
+          {error}
+        </Text>
+      )}
     </View>
   );
 };
