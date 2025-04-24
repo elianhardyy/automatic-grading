@@ -14,12 +14,16 @@ import Button from "../../components/common/Button";
 import { fonts } from "../../utils/font";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser, resetAuthError } from "../../redux/slice/auth";
+import InputGroup from "../common/InputGroup";
+import { MaterialIcons } from "@expo/vector-icons";
+
 const LoginForm = ({ navigation }) => {
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.auth);
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
@@ -106,8 +110,12 @@ const LoginForm = ({ navigation }) => {
     return validateField();
   };
 
-  const navigateToRegister = () => {
-    navigation.navigate("RegisterScreen");
+  const navigateToForgotPassword = () => {
+    navigation.navigate("ForgotPasswordScreen");
+  };
+
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
   };
 
   const handleSubmit = async () => {
@@ -129,7 +137,7 @@ const LoginForm = ({ navigation }) => {
   };
   return (
     <View className="w-full">
-      <Input
+      <InputGroup
         label="Username"
         value={username}
         onChangeText={setUsername}
@@ -139,18 +147,34 @@ const LoginForm = ({ navigation }) => {
         error={touchedFields.username ? errors.username : undefined}
         variant="rounded"
         className="mb-4"
+        iconPosition="left"
+        prefixIcon="person-outline"
       />
-      <Input
-        label="Password"
-        value={password}
-        onChangeText={setPassword}
-        onBlur={() => handleFieldBlur("password")}
-        placeholder="Password"
-        secureTextEntry
-        error={touchedFields.password ? errors.password : undefined}
-        variant="rounded"
-        className="mb-4"
-      />
+      <View className="mb-4 relative">
+        <InputGroup
+          label="Password"
+          value={password}
+          onChangeText={setPassword}
+          onBlur={() => handleFieldBlur("password")}
+          placeholder="Password"
+          secureTextEntry={!isPasswordVisible}
+          error={touchedFields.password ? errors.password : undefined}
+          variant="rounded"
+          iconPosition="left"
+          prefixIcon="lock-outline"
+        />
+        <TouchableOpacity
+          onPress={togglePasswordVisibility}
+          className="absolute right-3 top-2.5"
+          style={{ zIndex: 1 }}
+        >
+          <MaterialIcons
+            name={isPasswordVisible ? "visibility" : "visibility-off"}
+            size={24}
+            color="#757575"
+          />
+        </TouchableOpacity>
+      </View>
       <Button
         title={isLoading || loading ? "Loading..." : "Login"}
         disabled={isLoading || loading || !isFormValid}
@@ -165,10 +189,10 @@ const LoginForm = ({ navigation }) => {
         onPress={handleSubmit}
       />
       <View className="flex-row justify-between items-center mt-4">
-        <Text className="text-neutral-600">Don't have an account?</Text>
-        <TouchableOpacity onPress={navigateToRegister}>
-          <Text className="text-primary-500">Sign Up</Text>
+        <TouchableOpacity onPress={navigateToForgotPassword}>
+          <Text className="text-primary-500">Forgot Password?</Text>
         </TouchableOpacity>
+        {/* <Text className="text-neutral-600">Don't have an account?</Text> */}
       </View>
     </View>
   );

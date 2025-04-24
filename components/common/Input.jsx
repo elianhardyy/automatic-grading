@@ -21,6 +21,8 @@ const Input = ({
   };
 
   const stateStyles = disabled ? "bg-neutral-100 text-neutral-400" : "";
+
+  // Enhanced error styling for the border
   const errorStyle = error ? "border-alert-500" : "";
 
   return (
