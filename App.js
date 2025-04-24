@@ -8,9 +8,13 @@ import { fonts } from "./utils/font";
 import Main from "./Main";
 import { NavigationContainer } from "@react-navigation/native";
 import { Provider } from "react-redux";
-import { store } from "./redux/store";
+import { persistor, store } from "./redux/store";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PersistGate } from "redux-persist/integration/react";
+
 SplashScreen.preventAutoHideAsync();
+const queryClient = new QueryClient();
 export default function App() {
   const [loaded, error] = useFonts({
     "Montserrat-ExtraBold": require("./assets/fonts/Montserrat-ExtraBold.ttf"),
@@ -29,12 +33,16 @@ export default function App() {
   }
   return (
     <Provider store={store}>
-      <SafeAreaProvider>
-        <NavigationContainer>
-          <StatusBar style="auto" />
-          <Main />
-        </NavigationContainer>
-      </SafeAreaProvider>
+      <PersistGate loading={null} persistor={persistor}>
+        <QueryClientProvider client={queryClient}>
+          <SafeAreaProvider>
+            <NavigationContainer>
+              <StatusBar style="auto" />
+              <Main />
+            </NavigationContainer>
+          </SafeAreaProvider>
+        </QueryClientProvider>
+      </PersistGate>
     </Provider>
   );
 }
