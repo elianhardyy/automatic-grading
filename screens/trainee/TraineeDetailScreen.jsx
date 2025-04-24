@@ -1,18 +1,38 @@
 import React from "react";
 import { View, Text, ScrollView, SafeAreaView } from "react-native";
+import { useQuery } from "@tanstack/react-query";
 import Button from "../../components/common/Button";
 import Card from "../../components/common/Card";
 import { fonts } from "../../utils/font";
 import { MaterialIcons } from "@expo/vector-icons";
+import { fetchTraineeById } from "../../query/trainee";
 
 const TraineeDetailScreen = ({ trainee, onBack }) => {
-  // Calculate average score
-  const completedTasks = trainee.tasks.filter((task) => !task.pending);
-  const totalScore = completedTasks.reduce((sum, task) => sum + task.score, 0);
+  // Fetch detailed trainee data if needed
+  const { data: traineeDetails, isLoading } = useQuery({
+    queryKey: ["trainee", trainee.id],
+    queryFn: () => fetchTraineeById(trainee.id),
+    initialData: { data: trainee },
+  });
+
+  const traineeData = traineeDetails?.data || trainee;
+
+  // Get trainee tasks (or empty array if none)
+  const traineeTasks = traineeData.traineeTasks || [];
+
+  // Calculate completion status
+  const completedTasks = traineeTasks.filter(
+    (task) => task.score !== null
+  ).length;
+  const totalTasks = traineeTasks.length;
+
+  // Calculate average score from completed tasks
+  const totalScore = traineeTasks
+    .filter((task) => task.score !== null)
+    .reduce((sum, task) => sum + task.score, 0);
+
   const averageScore =
-    completedTasks.length > 0
-      ? Math.round(totalScore / completedTasks.length)
-      : 0;
+    completedTasks > 0 ? Math.round(totalScore / completedTasks) : 0;
 
   // Calculate performance status
   const getPerformanceStatus = (average) => {
@@ -25,14 +45,14 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
   const performance = getPerformanceStatus(averageScore);
 
   const renderTaskItem = (task, index) => {
-    if (task.pending) {
+    if (!task.score) {
       return (
         <View
           key={index}
           className="flex-row justify-between items-center py-3 border-b border-neutral-100"
         >
           <Text style={fonts.ecTextBody2} className="text-neutral-800">
-            {task.name}
+            {task.taskName || `Task ${index + 1}`}
           </Text>
           <View className="bg-neutral-100 px-3 py-1 rounded-full">
             <Text style={fonts.ecTextBody3} className="text-neutral-500">
@@ -43,7 +63,7 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
       );
     }
 
-    const scorePercentage = (task.score / task.maxScore) * 100;
+    const scorePercentage = task.score;
     let scoreColor = "text-neutral-800";
 
     if (scorePercentage >= 90) scoreColor = "text-success-500";
@@ -57,10 +77,10 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
         className="flex-row justify-between items-center py-3 border-b border-neutral-100"
       >
         <Text style={fonts.ecTextBody2} className="text-neutral-800">
-          {task.name}
+          {task.taskName || `Task ${index + 1}`}
         </Text>
         <Text style={fonts.ecTextBody2} className={scoreColor}>
-          {task.score}/{task.maxScore}
+          {task.score}/100
         </Text>
       </View>
     );
@@ -97,6 +117,14 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
       </View>
     );
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-neutral-50 justify-center items-center">
+        <ActivityIndicator size="large" color="#233D90" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50">
@@ -139,7 +167,7 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
                   style={fonts.ecTextBody2}
                   className="text-neutral-800 flex-1"
                 >
-                  {trainee.name}
+                  {traineeData.name}
                 </Text>
               </View>
               <View className="flex-row">
@@ -147,13 +175,13 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
                   style={fonts.ecTextBody2}
                   className="text-neutral-600 w-24"
                 >
-                  Email:
+                  Phone:
                 </Text>
                 <Text
                   style={fonts.ecTextBody2}
                   className="text-neutral-800 flex-1"
                 >
-                  {trainee.email}
+                  {traineeData.phoneNumber || "-"}
                 </Text>
               </View>
               <View className="flex-row">
@@ -161,17 +189,13 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
                   style={fonts.ecTextBody2}
                   className="text-neutral-600 w-24"
                 >
-                  Batch:
+                  Address:
                 </Text>
                 <Text
                   style={fonts.ecTextBody2}
                   className="text-neutral-800 flex-1"
                 >
-                  {trainee.id.includes("1")
-                    ? "Batch A - Spring 2025"
-                    : trainee.id.includes("4") || trainee.id.includes("5")
-                    ? "Batch B - Winter 2024"
-                    : "Batch C - Fall 2024"}
+                  {traineeData.address || "-"}
                 </Text>
               </View>
               <View className="flex-row">
@@ -185,7 +209,7 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
                   style={fonts.ecTextBody2}
                   className="text-neutral-800 flex-1"
                 >
-                  {trainee.completedTasks}/{trainee.totalTasks} tasks completed
+                  {completedTasks}/{totalTasks} tasks completed
                 </Text>
               </View>
             </View>
@@ -206,9 +230,17 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
             className="mb-4"
             icon={<MaterialIcons name="assignment" size={20} color="#233D90" />}
           >
-            <View className="mb-2">{trainee.tasks.map(renderTaskItem)}</View>
+            {traineeTasks.length > 0 ? (
+              <View className="mb-2">{traineeTasks.map(renderTaskItem)}</View>
+            ) : (
+              <View className="py-4 items-center">
+                <Text style={fonts.ecTextBody2} className="text-neutral-500">
+                  No tasks assigned yet
+                </Text>
+              </View>
+            )}
 
-            {trainee.completedTasks < trainee.totalTasks && (
+            {completedTasks < totalTasks && (
               <View className="mt-4">
                 <Button
                   title="Add Assessment"
