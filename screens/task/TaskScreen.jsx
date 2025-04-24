@@ -9,165 +9,349 @@ import {
   TextInput,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { MotiView } from "moti";
+import { Easing } from "react-native-reanimated";
+import { useQuery } from "@tanstack/react-query";
+import { fetchTask, fetchAllTaskCategories } from "../../query/task";
+import { fetchAllBatchByMe } from "../../query/batch";
 import { fonts } from "../../utils/font";
 import Button from "../../components/common/Button";
 import Alert from "../../components/common/Alert";
 import Card from "../../components/common/Card";
 import Select from "../../components/common/Select";
+import { useDispatch } from "react-redux";
+import { setOngoing } from "../../redux/slice/ongoing";
+import Badge from "../../components/common/Badge";
 
-const TaskScreen = () => {
+const SkeletonCard = () => (
+  <MotiView
+    style={{
+      borderRadius: 8,
+      marginBottom: 12,
+      padding: 16,
+      backgroundColor: "#F5F5F5",
+    }}
+    from={{ opacity: 0.5 }}
+    animate={{ opacity: 1 }}
+    transition={{
+      type: "timing",
+      duration: 800,
+      easing: Easing.inOut(Easing.ease),
+      loop: true,
+      repeatReverse: true,
+    }}
+  >
+    <MotiView
+      style={{
+        height: 22,
+        width: "70%",
+        backgroundColor: "#E0E0E0",
+        borderRadius: 4,
+        marginBottom: 12,
+      }}
+      from={{ opacity: 0.6 }}
+      animate={{ opacity: 1 }}
+      transition={{
+        loop: true,
+        type: "timing",
+        duration: 800,
+        easing: Easing.inOut(Easing.ease),
+      }}
+    />
+
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginBottom: 8,
+      }}
+    >
+      <MotiView
+        style={{
+          height: 16,
+          width: "30%",
+          backgroundColor: "#E0E0E0",
+          borderRadius: 4,
+        }}
+        from={{ opacity: 0.6 }}
+        animate={{ opacity: 1 }}
+        transition={{
+          loop: true,
+          type: "timing",
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+        }}
+      />
+      <MotiView
+        style={{
+          height: 16,
+          width: "25%",
+          backgroundColor: "#E0E0E0",
+          borderRadius: 4,
+        }}
+        from={{ opacity: 0.6 }}
+        animate={{ opacity: 1 }}
+        transition={{
+          loop: true,
+          type: "timing",
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+        }}
+      />
+    </View>
+
+    <MotiView
+      style={{
+        height: 8,
+        width: "100%",
+        backgroundColor: "#E0E0E0",
+        borderRadius: 4,
+        marginBottom: 8,
+      }}
+      from={{ opacity: 0.6 }}
+      animate={{ opacity: 1 }}
+      transition={{
+        loop: true,
+        type: "timing",
+        duration: 800,
+        easing: Easing.inOut(Easing.ease),
+      }}
+    />
+
+    {/* Bottom text skeleton */}
+    <MotiView
+      style={{
+        height: 16,
+        width: "40%",
+        backgroundColor: "#E0E0E0",
+        borderRadius: 4,
+        marginBottom: 12,
+      }}
+      from={{ opacity: 0.6 }}
+      animate={{ opacity: 1 }}
+      transition={{
+        loop: true,
+        type: "timing",
+        duration: 800,
+        easing: Easing.inOut(Easing.ease),
+      }}
+    />
+
+    {/* Button skeleton */}
+    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+      <MotiView
+        style={{
+          height: 36,
+          width: "48%",
+          backgroundColor: "#E0E0E0",
+          borderRadius: 4,
+        }}
+        from={{ opacity: 0.6 }}
+        animate={{ opacity: 1 }}
+        transition={{
+          loop: true,
+          type: "timing",
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+        }}
+      />
+      <MotiView
+        style={{
+          height: 36,
+          width: "48%",
+          backgroundColor: "#E0E0E0",
+          borderRadius: 4,
+        }}
+        from={{ opacity: 0.6 }}
+        animate={{ opacity: 1 }}
+        transition={{
+          loop: true,
+          type: "timing",
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+        }}
+      />
+    </View>
+  </MotiView>
+);
+
+const SkeletonFilter = () => (
+  <MotiView
+    style={{
+      height: 40,
+      backgroundColor: "#E0E0E0",
+      borderRadius: 4,
+      marginBottom: 8,
+    }}
+    from={{ opacity: 0.6 }}
+    animate={{ opacity: 1 }}
+    transition={{
+      loop: true,
+      type: "timing",
+      duration: 800,
+      easing: Easing.inOut(Easing.ease),
+    }}
+  />
+);
+
+const TaskScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("all");
   const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Filter states
-  const [selectedBatch, setSelectedBatch] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState(null);
-  const [sortBy, setSortBy] = useState("deadline");
+  // Filter states - changed null to empty string
+  const [selectedBatch, setSelectedBatch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  // Mocked data
-  const mockTasks = [
-    {
-      id: "1",
-      name: "React Native Basics",
-      category: "Frontend",
-      batch: "Batch 12",
-      deadline: "2025-04-20",
-      totalTrainees: 25,
-      assessedTrainees: 18,
-      createdAt: "2025-04-10",
-      status: "ongoing",
-    },
-    {
-      id: "2",
-      name: "API Integration",
-      category: "Backend",
-      batch: "Batch 12",
-      deadline: "2025-04-25",
-      totalTrainees: 25,
-      assessedTrainees: 5,
-      createdAt: "2025-04-12",
-      status: "ongoing",
-    },
-    {
-      id: "3",
-      name: "Database Design",
-      category: "Backend",
-      batch: "Batch 11",
-      deadline: "2025-04-15",
-      totalTrainees: 22,
-      assessedTrainees: 22,
-      createdAt: "2025-04-05",
-      status: "completed",
-    },
-    {
-      id: "4",
-      name: "UI/UX Principles",
-      category: "Design",
-      batch: "Batch 12",
-      deadline: "2025-04-28",
-      totalTrainees: 25,
-      assessedTrainees: 0,
-      createdAt: "2025-04-14",
-      status: "not_started",
-    },
-    {
-      id: "5",
-      name: "Redux State Management",
-      category: "Frontend",
-      batch: "Batch 11",
-      deadline: "2025-04-12",
-      totalTrainees: 22,
-      assessedTrainees: 20,
-      createdAt: "2025-04-01",
-      status: "ongoing",
-    },
-  ];
+  // Create a filter object that includes the selected filters
+  const filter = {
+    page: currentPage,
+    size: pageSize,
+    sortBy: sortBy,
+    direction: "asc",
+    batchId: selectedBatch || undefined, // Add batchId to API filter
+    categoryId: selectedCategory || undefined, // Add categoryId to API filter
+    status: selectedStatus || undefined, // Add status to API filter
+    taskCategoryName: undefined,
+    batchName: undefined,
+  };
 
-  // Sample data for dropdowns
-  const batchOptions = [
-    { label: "All Batches", value: null },
-    { label: "Batch 11", value: "Batch 11" },
-    { label: "Batch 12", value: "Batch 12" },
-  ];
+  // Fetch tasks using the filter
+  const {
+    data: tasksData,
+    isLoading: isTasksLoading,
+    isError: isTasksError,
+    error: tasksError,
+    refetch: refetchTasks,
+  } = useQuery({
+    queryKey: ["tasks", filter],
+    queryFn: () => fetchTask(filter),
+    onError: (error) => {
+      console.error("Error details:", error);
+      console.error("Response data:", error.response?.data.data);
+    },
+  });
 
-  const categoryOptions = [
-    { label: "All Categories", value: null },
-    { label: "Frontend", value: "Frontend" },
-    { label: "Backend", value: "Backend" },
-    { label: "Design", value: "Design" },
-  ];
+  // Fetch categories for filter dropdown
+  const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery({
+    queryKey: ["taskCategories"],
+    queryFn: fetchAllTaskCategories,
+  });
 
+  // Fetch batches for filter dropdown
+  const { data: batchesData, isLoading: isBatchesLoading } = useQuery({
+    queryKey: ["batches"],
+    queryFn: () => fetchAllBatchByMe(filter),
+  });
+
+  const isLoading = isTasksLoading || isCategoriesLoading || isBatchesLoading;
+  const isError = isTasksError;
+  const error = tasksError;
+  const data = tasksData;
+
+  // Transform API data to match our component expectations
+  const transformedTasks = React.useMemo(() => {
+    if (!data?.data) return [];
+
+    return data.data.map((task) => {
+      const batchTask = task.batchTasks[0] || {};
+
+      return {
+        id: task.id,
+        name: task.name,
+        category: task.taskCategory?.name || "Uncategorized",
+        categoryId: task.taskCategory?.id || "",
+        batch: batchTask.batchName || "Unknown Batch",
+        batchNumber: batchTask.batchNumber || "",
+        batchId: batchTask.batchId || "",
+        deadline: batchTask.dueDate || new Date().toISOString(),
+        assignedDate: batchTask.assignedDate || new Date().toISOString(),
+        totalTrainees: batchTask.totalTrainees || 0,
+        assessedTrainees: batchTask.assessedTrainees || 0,
+        createdAt: batchTask.assignedDate || new Date().toISOString(),
+        status: task.status || "ongoing",
+      };
+    });
+  }, [data?.data]);
+
+  // Changed null to empty string in the options
+  const batchOptions = React.useMemo(() => {
+    const defaultOption = [{ label: "All Batches", value: "" }];
+
+    if (!batchesData?.data) return defaultOption;
+
+    const batchOptions = batchesData.data.map((batch) => ({
+      label: batch.name,
+      value: batch.id,
+    }));
+
+    return [...defaultOption, ...batchOptions];
+  }, [batchesData?.data]);
+
+  // Changed null to empty string in the options
+  const categoryOptions = React.useMemo(() => {
+    const defaultOption = [{ label: "All Categories", value: "" }];
+
+    if (!categoriesData?.data) return defaultOption;
+
+    const categoryOptions = categoriesData.data.map((category) => ({
+      label: category.name,
+      value: category.id,
+    }));
+
+    return [...defaultOption, ...categoryOptions];
+  }, [categoriesData?.data]);
+
+  // Changed null to empty string in the options
   const statusOptions = [
-    { label: "All Status", value: null },
+    { label: "All Status", value: "" },
     { label: "Assessed", value: "assessed" },
     { label: "Not Assessed", value: "not_assessed" },
   ];
 
   const sortOptions = [
-    { label: "Deadline (closest first)", value: "deadline" },
-    { label: "Date Created (newest first)", value: "created" },
+    { label: "Due Date (closest first)", value: "dueDate" },
+    { label: "Assigned Date (newest first)", value: "assignedDate" },
     { label: "Name (A-Z)", value: "name" },
   ];
 
+  // Check if a task is ongoing (between assigned date and due date)
+  const isTaskOngoing = (task) => {
+    const currentDate = new Date();
+    const assignedDate = new Date(task.assignedDate);
+    const dueDate = new Date(task.deadline);
+
+    return currentDate >= assignedDate && currentDate < dueDate;
+  };
+
+  // Updated filtering logic to use local filtering for additional filtering beyond what the API provides
+  const filteredTasks = transformedTasks.filter((task) => {
+    const matchesSearch = task.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+
+    // Tab filter
+    const matchesTab =
+      selectedTab === "all" ||
+      (selectedTab === "ongoing" && isTaskOngoing(task)) ||
+      (selectedTab === "completed" &&
+        task.assessedTrainees === task.totalTrainees);
+
+    return matchesSearch && matchesTab;
+  });
+
+  const onlyOnGoingTasks = filteredTasks.filter((task) =>
+    isTaskOngoing(task) ? task : null
+  );
+
   useEffect(() => {
-    // Simulate API call to fetch tasks
-    setTimeout(() => {
-      setTasks(mockTasks);
-      setLoading(false);
-    }, 1000);
-  }, []);
-
-  const filteredTasks = tasks
-    .filter((task) => {
-      // Search filter
-      const matchesSearch = task.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-
-      // Tab filter
-      const matchesTab =
-        selectedTab === "all" ||
-        (selectedTab === "pending" &&
-          task.assessedTrainees < task.totalTrainees) ||
-        (selectedTab === "completed" &&
-          task.assessedTrainees === task.totalTrainees);
-
-      // Additional filters
-      const matchesBatch = !selectedBatch || task.batch === selectedBatch;
-      const matchesCategory =
-        !selectedCategory || task.category === selectedCategory;
-
-      const isFullyAssessed = task.assessedTrainees === task.totalTrainees;
-      const matchesStatus =
-        !selectedStatus ||
-        (selectedStatus === "assessed" && isFullyAssessed) ||
-        (selectedStatus === "not_assessed" && !isFullyAssessed);
-
-      return (
-        matchesSearch &&
-        matchesTab &&
-        matchesBatch &&
-        matchesCategory &&
-        matchesStatus
-      );
-    })
-    .sort((a, b) => {
-      // Sort functionality
-      switch (sortBy) {
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "created":
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        case "deadline":
-        default:
-          return new Date(a.deadline) - new Date(b.deadline);
-      }
-    });
+    dispatch(setOngoing(onlyOnGoingTasks));
+  }, [onlyOnGoingTasks, dispatch]);
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "short", day: "numeric" };
@@ -177,14 +361,22 @@ const TaskScreen = () => {
   const getTaskStatusColor = (task) => {
     const ratio = task.assessedTrainees / task.totalTrainees;
 
-    if (ratio === 0) return "#E1E1E1"; // Not started - Neutral
-    if (ratio === 1) return "#43936C"; // Completed - Success
+    if (ratio === 0) return "#E1E1E1";
+    if (ratio === 1) return "#43936C";
 
     // Check if task is past deadline
     const isOverdue = new Date(task.deadline) < new Date();
     if (isOverdue) return "#CB3A31"; // Overdue - Alert
 
     return "#233D90"; // In progress - Primary
+  };
+
+  const handleAddTask = () => {
+    navigation.navigate("CreateTaskScreen");
+  };
+
+  const handleDetailTask = (taskId) => {
+    navigation.navigate("DetailTaskScreen", { taskId });
   };
 
   const renderTaskItem = ({ item }) => {
@@ -205,6 +397,7 @@ const TaskScreen = () => {
               title="View Details"
               variant="primary"
               type="outlined"
+              onPress={() => handleDetailTask(item.id)}
               icon={
                 <MaterialIcons name="visibility" size={16} color="#233D90" />
               }
@@ -224,10 +417,7 @@ const TaskScreen = () => {
         <View className="mb-3">
           <View className="flex-row justify-between items-center mb-2">
             <View className="flex-row items-center">
-              <Text
-                style={fonts.ecTextSubtitle2}
-                className="text-primary-500 mr-2"
-              >
+              <Text style={fonts.ecTextBody2} className="text-primary-500 mr-2">
                 {item.category}
               </Text>
               <View className="bg-neutral-100 px-2 py-1 rounded">
@@ -300,6 +490,36 @@ const TaskScreen = () => {
     </View>
   );
 
+  const renderSkeletonList = () => (
+    <View style={{ padding: 16 }}>
+      {Array(3)
+        .fill(0)
+        .map((_, index) => (
+          <SkeletonCard key={index} />
+        ))}
+    </View>
+  );
+
+  // Updated to set empty strings
+  const handleResetFilters = () => {
+    setSelectedBatch("");
+    setSelectedCategory("");
+    setSelectedStatus("");
+    setSortBy("name");
+    // Reset to first page when filters change
+    setCurrentPage(1);
+    // Refetch with new parameters
+    refetchTasks();
+  };
+
+  const handleApplyFilters = () => {
+    setIsFilterVisible(false);
+    // Reset to first page when filters change
+    setCurrentPage(1);
+    // Refetch with new parameters
+    refetchTasks();
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-neutral-50">
       <StatusBar backgroundColor="#233D90" barStyle="light-content" />
@@ -347,25 +567,35 @@ const TaskScreen = () => {
               selectedTab === "all" ? "text-primary-500" : "text-neutral-600"
             }
           >
-            All
+            All{" "}
+            <Badge
+              text={transformedTasks.length}
+              size="small"
+              color="primary"
+            />
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           className={`flex-1 py-2 items-center ${
-            selectedTab === "pending" ? "border-b-2 border-primary-500" : ""
+            selectedTab === "ongoing" ? "border-b-2 border-primary-500" : ""
           }`}
-          onPress={() => setSelectedTab("pending")}
+          onPress={() => setSelectedTab("ongoing")}
         >
           <Text
             style={fonts.ecTextBody2}
             className={
-              selectedTab === "pending"
+              selectedTab === "ongoing"
                 ? "text-primary-500"
                 : "text-neutral-600"
             }
           >
-            Pending
+            Ongoing{" "}
+            <Badge
+              text={onlyOnGoingTasks.length}
+              size="small"
+              color="primary"
+            />
           </Text>
         </TouchableOpacity>
 
@@ -409,94 +639,229 @@ const TaskScreen = () => {
       {/* Filter Panel */}
       {isFilterVisible && (
         <View className="bg-neutral-50 p-4 border-b border-neutral-200">
-          <View className="flex-row justify-between mb-3">
-            <View className="flex-1 mr-2">
-              <Text style={fonts.ecTextBody3} className="text-neutral-600 mb-1">
-                Batch
-              </Text>
-              <Select
-                options={batchOptions}
-                value={selectedBatch}
-                onValueChange={setSelectedBatch}
-                placeholder="Select Batch"
-                variant="rounded"
-              />
+          {isLoading ? (
+            // Skeleton loading for filter panel
+            <View>
+              <View className="flex-row justify-between mb-3">
+                <View className="flex-1 mr-2">
+                  <MotiView
+                    style={{
+                      height: 16,
+                      width: "50%",
+                      marginBottom: 8,
+                      backgroundColor: "#E0E0E0",
+                      borderRadius: 4,
+                    }}
+                    from={{ opacity: 0.6 }}
+                    animate={{ opacity: 1 }}
+                    transition={{
+                      loop: true,
+                      type: "timing",
+                      duration: 800,
+                      easing: Easing.inOut(Easing.ease),
+                    }}
+                  />
+                  <SkeletonFilter />
+                </View>
+                <View className="flex-1 ml-2">
+                  <MotiView
+                    style={{
+                      height: 16,
+                      width: "50%",
+                      marginBottom: 8,
+                      backgroundColor: "#E0E0E0",
+                      borderRadius: 4,
+                    }}
+                    from={{ opacity: 0.6 }}
+                    animate={{ opacity: 1 }}
+                    transition={{
+                      loop: true,
+                      type: "timing",
+                      duration: 800,
+                      easing: Easing.inOut(Easing.ease),
+                    }}
+                  />
+                  <SkeletonFilter />
+                </View>
+              </View>
+              <View className="flex-row justify-between mb-4">
+                <View className="flex-1 mr-2">
+                  <MotiView
+                    style={{
+                      height: 16,
+                      width: "50%",
+                      marginBottom: 8,
+                      backgroundColor: "#E0E0E0",
+                      borderRadius: 4,
+                    }}
+                    from={{ opacity: 0.6 }}
+                    animate={{ opacity: 1 }}
+                    transition={{
+                      loop: true,
+                      type: "timing",
+                      duration: 800,
+                      easing: Easing.inOut(Easing.ease),
+                    }}
+                  />
+                  <SkeletonFilter />
+                </View>
+                <View className="flex-1 ml-2">
+                  <MotiView
+                    style={{
+                      height: 16,
+                      width: "50%",
+                      marginBottom: 8,
+                      backgroundColor: "#E0E0E0",
+                      borderRadius: 4,
+                    }}
+                    from={{ opacity: 0.6 }}
+                    animate={{ opacity: 1 }}
+                    transition={{
+                      loop: true,
+                      type: "timing",
+                      duration: 800,
+                      easing: Easing.inOut(Easing.ease),
+                    }}
+                  />
+                  <SkeletonFilter />
+                </View>
+              </View>
+              <View className="flex-row">
+                <MotiView
+                  style={{
+                    height: 36,
+                    flex: 1,
+                    marginRight: 8,
+                    backgroundColor: "#E0E0E0",
+                    borderRadius: 4,
+                  }}
+                  from={{ opacity: 0.6 }}
+                  animate={{ opacity: 1 }}
+                  transition={{
+                    loop: true,
+                    type: "timing",
+                    duration: 800,
+                    easing: Easing.inOut(Easing.ease),
+                  }}
+                />
+                <MotiView
+                  style={{
+                    height: 36,
+                    flex: 1,
+                    marginLeft: 8,
+                    backgroundColor: "#E0E0E0",
+                    borderRadius: 4,
+                  }}
+                  from={{ opacity: 0.6 }}
+                  animate={{ opacity: 1 }}
+                  transition={{
+                    loop: true,
+                    type: "timing",
+                    duration: 800,
+                    easing: Easing.inOut(Easing.ease),
+                  }}
+                />
+              </View>
             </View>
-            <View className="flex-1 ml-2">
-              <Text style={fonts.ecTextBody3} className="text-neutral-600 mb-1">
-                Category
-              </Text>
-              <Select
-                options={categoryOptions}
-                value={selectedCategory}
-                onValueChange={setSelectedCategory}
-                placeholder="Select Category"
-                variant="rounded"
-              />
-            </View>
-          </View>
+          ) : (
+            <>
+              <View className="flex-row justify-between mb-3">
+                <View className="flex-1 mr-2">
+                  <Text
+                    style={fonts.ecTextBody3}
+                    className="text-neutral-600 mb-1"
+                  >
+                    Batch
+                  </Text>
+                  <Select
+                    options={batchOptions}
+                    value={selectedBatch}
+                    onValueChange={setSelectedBatch}
+                    placeholder="Select Batch"
+                    variant="rounded"
+                  />
+                </View>
+                <View className="flex-1 ml-2">
+                  <Text
+                    style={fonts.ecTextBody3}
+                    className="text-neutral-600 mb-1"
+                  >
+                    Category
+                  </Text>
+                  <Select
+                    options={categoryOptions}
+                    value={selectedCategory}
+                    onValueChange={setSelectedCategory}
+                    placeholder="Select Category"
+                    variant="rounded"
+                  />
+                </View>
+              </View>
 
-          <View className="flex-row justify-between mb-4">
-            <View className="flex-1 mr-2">
-              <Text style={fonts.ecTextBody3} className="text-neutral-600 mb-1">
-                Status
-              </Text>
-              <Select
-                options={statusOptions}
-                value={selectedStatus}
-                onValueChange={setSelectedStatus}
-                placeholder="Select Status"
-                variant="rounded"
-              />
-            </View>
-            <View className="flex-1 ml-2">
-              <Text style={fonts.ecTextBody3} className="text-neutral-600 mb-1">
-                Sort By
-              </Text>
-              <Select
-                options={sortOptions}
-                value={sortBy}
-                onValueChange={setSortBy}
-                placeholder="Sort By"
-                variant="rounded"
-              />
-            </View>
-          </View>
+              <View className="flex-row justify-between mb-4">
+                <View className="flex-1 mr-2">
+                  <Text
+                    style={fonts.ecTextBody3}
+                    className="text-neutral-600 mb-1"
+                  >
+                    Status
+                  </Text>
+                  <Select
+                    options={statusOptions}
+                    value={selectedStatus}
+                    onValueChange={setSelectedStatus}
+                    placeholder="Select Status"
+                    variant="rounded"
+                  />
+                </View>
+                <View className="flex-1 ml-2">
+                  <Text
+                    style={fonts.ecTextBody3}
+                    className="text-neutral-600 mb-1"
+                  >
+                    Sort By
+                  </Text>
+                  <Select
+                    options={sortOptions}
+                    value={sortBy}
+                    onValueChange={setSortBy}
+                    placeholder="Sort By"
+                    variant="rounded"
+                  />
+                </View>
+              </View>
 
-          <View className="flex-row">
-            <Button
-              title="Reset Filters"
-              variant="neutral"
-              type="outlined"
-              className="flex-1 mr-2"
-              onPress={() => {
-                setSelectedBatch(null);
-                setSelectedCategory(null);
-                setSelectedStatus(null);
-                setSortBy("deadline");
-              }}
-            />
-            <Button
-              title="Apply Filters"
-              variant="primary"
-              className="flex-1 ml-2"
-              onPress={() => setIsFilterVisible(false)}
-            />
-          </View>
+              <View className="flex-row">
+                <Button
+                  title="Reset Filters"
+                  variant="neutral"
+                  type="outlined"
+                  className="flex-1 mr-2"
+                  onPress={handleResetFilters}
+                />
+                <Button
+                  title="Apply Filters"
+                  variant="primary"
+                  className="flex-1 ml-2"
+                  onPress={handleApplyFilters}
+                />
+              </View>
+            </>
+          )}
         </View>
       )}
 
       {/* Task List */}
-      {loading ? (
-        <View className="flex-1 justify-center items-center">
-          <Text style={fonts.ecTextBody1}>Loading tasks...</Text>
-        </View>
-      ) : error ? (
+      {isLoading ? (
+        renderSkeletonList()
+      ) : isError ? (
         <View className="p-4">
           <Alert
             variant="alert"
             title="Error"
-            message="Failed to load tasks. Please try again later."
+            message={
+              error?.message || "Failed to load tasks. Please try again later."
+            }
           />
         </View>
       ) : (
@@ -506,6 +871,15 @@ const TaskScreen = () => {
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 16 }}
           ListEmptyComponent={renderEmptyList}
+          onEndReached={() => {
+            const paging = data?.paging;
+            if (paging?.hasNext) {
+              setCurrentPage((prev) => prev + 1);
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          refreshing={isLoading}
+          onRefresh={refetchTasks}
         />
       )}
 
@@ -519,6 +893,7 @@ const TaskScreen = () => {
           shadowOpacity: 0.25,
           shadowRadius: 3.84,
         }}
+        onPress={handleAddTask}
       >
         <MaterialIcons name="add" size={32} color="#FFFFFF" />
       </TouchableOpacity>

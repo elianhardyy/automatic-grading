@@ -3,7 +3,7 @@
 ./screens/profile/*
 ./screens/task/*
 ./screens/trainee/*
-
+.env
 # dependencies
 node_modules/
 .npmrc

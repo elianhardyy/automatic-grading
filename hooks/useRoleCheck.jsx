@@ -19,7 +19,7 @@ export const useRoleCheck = (requiredRoles, redirectTo = "LoginScreen") => {
 
     const hasAccess = checkRole();
     if (!hasAccess) {
-      navigation.replace(redirectTo);
+      navigation.navigate(redirectTo);
     }
   }, [user, requiredRoles, redirectTo, navigation]);
 };
