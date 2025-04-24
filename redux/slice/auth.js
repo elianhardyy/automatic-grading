@@ -54,11 +54,13 @@ export const logoutUser = createAsyncThunk(
       await AsyncStorage.removeItem("accessToken");
       await AsyncStorage.removeItem("accountId");
       await AsyncStorage.removeItem("role");
+      await AsyncStorage.removeItem("username");
       return null;
     } catch (error) {
       await AsyncStorage.removeItem("accessToken");
       await AsyncStorage.removeItem("accountId");
       await AsyncStorage.removeItem("role");
+      await AsyncStorage.removeItem("username");
       return rejectWithValue(
         error.response?.data || { message: error.message }
       );
@@ -127,8 +129,6 @@ export const refreshUserToken = createAsyncThunk(
     }
   }
 );
-
-// Then add to the extraReducers:
 
 const initialState = {
   user: null,
