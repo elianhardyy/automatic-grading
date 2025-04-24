@@ -8,7 +8,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { fetchTraineeById } from "../../query/trainee";
 
 const TraineeDetailScreen = ({ trainee, onBack }) => {
-  // Fetch detailed trainee data if needed
   const { data: traineeDetails, isLoading } = useQuery({
     queryKey: ["trainee", trainee.id],
     queryFn: () => fetchTraineeById(trainee.id),
@@ -17,16 +16,13 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
 
   const traineeData = traineeDetails?.data || trainee;
 
-  // Get trainee tasks (or empty array if none)
   const traineeTasks = traineeData.traineeTasks || [];
 
-  // Calculate completion status
   const completedTasks = traineeTasks.filter(
     (task) => task.score !== null
   ).length;
   const totalTasks = traineeTasks.length;
 
-  // Calculate average score from completed tasks
   const totalScore = traineeTasks
     .filter((task) => task.score !== null)
     .reduce((sum, task) => sum + task.score, 0);
@@ -34,7 +30,6 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
   const averageScore =
     completedTasks > 0 ? Math.round(totalScore / completedTasks) : 0;
 
-  // Calculate performance status
   const getPerformanceStatus = (average) => {
     if (average >= 90) return { text: "Excellent", color: "success" };
     if (average >= 80) return { text: "Good", color: "info" };
@@ -86,7 +81,6 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
     );
   };
 
-  // Performance visualization with a circle progress
   const renderPerformanceCircle = () => {
     return (
       <View className="items-center justify-center my-4">
