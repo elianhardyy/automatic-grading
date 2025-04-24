@@ -48,7 +48,10 @@ const Select = ({
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View className="flex-1 justify-end bg-black bg-opacity-50">
+        <View
+          className="flex-1 justify-end"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
           <View className="bg-white rounded-t-lg">
             <View className="p-4 border-b border-neutral-200 flex-row justify-between items-center">
               <Text className="text-lg font-medium">{placeholder}</Text>

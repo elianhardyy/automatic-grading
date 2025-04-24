@@ -1,6 +1,24 @@
-import React, { useState } from "react";
-import { View, Text, Image, TouchableOpacity, Animated } from "react-native";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+} from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
+import { fonts } from "../../utils/font";
+
+// Enable LayoutAnimation untuk Android
+if (Platform.OS === "android") {
+  if (UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+}
+
 const Card = ({
   imageSource,
   imageAlt = "card-image",
@@ -16,7 +34,11 @@ const Card = ({
   ...props
 }) => {
   const [expanded, setExpanded] = useState(initiallyExpanded);
-  const [animation] = useState(new Animated.Value(initiallyExpanded ? 1 : 0));
+  const contentRef = useRef(null);
+  const [contentHeight, setContentHeight] = useState(0);
+  const animatedHeight = useRef(
+    new Animated.Value(initiallyExpanded ? 1 : 0)
+  ).current;
 
   const variantClasses = {
     primary: "border-primary-200 bg-neutral-50",
@@ -32,25 +54,29 @@ const Card = ({
 
   const variantClass = variantClasses[variant] || variantClasses.neutral;
 
-  const toggleExpand = () => {
+  // Mengkonfigurasi animasi
+  useEffect(() => {
     if (collapsible) {
-      Animated.timing(animation, {
-        toValue: expanded ? 0 : 1,
+      // Menggunakan LayoutAnimation untuk transisi yang lebih halus
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
+      // Animasi untuk rotasi ikon
+      Animated.timing(animatedHeight, {
+        toValue: expanded ? 1 : 0,
         duration: 300,
         useNativeDriver: false,
       }).start();
+    }
+  }, [expanded]);
 
+  const toggleExpand = () => {
+    if (collapsible) {
       setExpanded(!expanded);
     }
   };
 
-  // Ini akan membuat animasi untuk height content
-  const bodyHeight = animation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, "auto"],
-  });
-
-  const iconRotation = animation.interpolate({
+  // Membuat animasi untuk rotasi ikon
+  const iconRotation = animatedHeight.interpolate({
     inputRange: [0, 1],
     outputRange: ["0deg", "180deg"],
   });
@@ -64,11 +90,16 @@ const Card = ({
       <View className="flex-row justify-between items-center p-3 border-b border-neutral-200">
         <View className="flex-row items-center">
           {icon && <View className="mr-2">{icon}</View>}
-          <Text className="font-bold text-lg text-neutral-800">{title}</Text>
+          <Text
+            className="font-bold text-neutral-800"
+            style={fonts.ecTextHeader2M}
+          >
+            {title}
+          </Text>
         </View>
 
         {collapsible && (
-          <TouchableOpacity onPress={toggleExpand}>
+          <TouchableOpacity onPress={toggleExpand} activeOpacity={0.7}>
             <Animated.View style={{ transform: [{ rotate: iconRotation }] }}>
               <FontAwesome name="chevron-down" size={16} color="#757575" />
             </Animated.View>
@@ -88,32 +119,29 @@ const Card = ({
         </View>
       )}
 
-      {/* Card Body - Animated for expand/collapse */}
-      <Animated.View
-        style={{
-          height: collapsible ? bodyHeight : "auto",
-          overflow: "hidden",
-        }}
-      >
-        {/* Card Content */}
-        <View className="p-4">
-          {description && (
-            <Text className="text-neutral-700 mb-2">{description}</Text>
+      {/* Card Body - Menggunakan height: 0 dan overflow: hidden untuk collapse */}
+      {expanded || !collapsible ? (
+        <View ref={contentRef}>
+          {/* Card Content */}
+          <View className="p-4">
+            {description && (
+              <Text className="text-neutral-700 mb-2">{description}</Text>
+            )}
+
+            {props.children}
+          </View>
+
+          {/* Card Footer */}
+          {footer && (
+            <View className="px-4 py-3 border-t border-neutral-200">
+              {footer}
+            </View>
           )}
 
-          {props.children}
+          {/* Card Action */}
+          {action && <View className="px-4 py-3 bg-neutral-100">{action}</View>}
         </View>
-
-        {/* Card Footer */}
-        {footer && (
-          <View className="px-4 py-3 border-t border-neutral-200">
-            {footer}
-          </View>
-        )}
-
-        {/* Card Action */}
-        {action && <View className="px-4 py-3 bg-neutral-100">{action}</View>}
-      </Animated.View>
+      ) : null}
     </View>
   );
 };
