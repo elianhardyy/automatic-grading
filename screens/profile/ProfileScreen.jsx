@@ -1,26 +1,25 @@
+// --- START OF FILE ProfileScreen.jsx ---
+
 import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   Image,
-  Alert,
+  Alert as RNAlert, // Rename to avoid conflict with custom Alert component
   ActivityIndicator,
+  RefreshControl,
+  TouchableOpacity, // Added for potentially tappable elements
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import { fonts } from "../../utils/font";
-import {
-  getProfilePicture,
-  getProfilePictureByURI,
-  profileTrainer,
-} from "../../redux/slice/profile";
+import { profileTrainer } from "../../redux/slice/profile";
 import { logoutUser } from "../../redux/slice/auth";
 import { MotiView } from "moti";
 import { Easing } from "react-native-reanimated";
-import * as FileSystem from "expo-file-system";
 import { API_URL } from "../../constant/uri";
 
 const Skeleton = ({ width = "100%", height = 20, radius = 6, style }) => (
@@ -30,25 +29,24 @@ const Skeleton = ({ width = "100%", height = 20, radius = 6, style }) => (
         width,
         height,
         borderRadius: radius,
-        backgroundColor: "#E0E0E0",
+        backgroundColor: "#E1E1E1",
       },
       style,
     ]}
-    from={{ opacity: 0.6 }}
+    from={{ opacity: 0.5 }}
     animate={{ opacity: 1 }}
     transition={{
       loop: true,
       type: "timing",
-      duration: 800,
+      duration: 1000,
       easing: Easing.inOut(Easing.ease),
-      repeatReverse: true,
     }}
   />
 );
 
-const SkeletonCard = () => (
-  <View className="rounded-lg shadow border overflow-hidden border-neutral-200 bg-neutral-50 mb-4">
-    <View className="flex-row justify-between items-center p-3 border-b border-neutral-200">
+const SkeletonCard = ({ children, titleWidth = "60%" }) => (
+  <View className="rounded-xl shadow-sm border border-neutral-200 bg-white mb-4 overflow-hidden">
+    <View className="flex-row justify-between items-center p-3 border-b border-neutral-100">
       <View className="flex-row items-center">
         <Skeleton
           width={20}
@@ -56,158 +54,111 @@ const SkeletonCard = () => (
           radius={4}
           style={{ marginRight: 8 }}
         />
-        <Skeleton width="60%" height={22} radius={4} />
+        <Skeleton width={titleWidth} height={18} radius={4} />
       </View>
     </View>
-
-    <View className="p-4">
-      <View className="flex-row mb-6">
-        <Skeleton
-          width={80}
-          height={80}
-          radius={40}
-          style={{ marginRight: 16 }}
-        />
-        <View className="flex-1 justify-center">
-          <Skeleton
-            width="70%"
-            height={24}
-            radius={4}
-            style={{ marginBottom: 8 }}
-          />
-          <Skeleton
-            width="40%"
-            height={16}
-            radius={4}
-            style={{ marginBottom: 8 }}
-          />
-          <Skeleton width="50%" height={14} radius={4} />
-        </View>
-      </View>
-
-      <View className="border-t border-neutral-200 pt-4">
-        {/* Multiple information fields */}
-        {[...Array(5)].map((_, index) => (
-          <View key={index} className="mb-4">
-            <Skeleton
-              width={`${20 + Math.random() * 15}%`}
-              height={14}
-              radius={4}
-              style={{ marginBottom: 8 }}
-            />
-            <Skeleton
-              width={`${50 + Math.random() * 30}%`}
-              height={18}
-              radius={4}
-            />
-          </View>
-        ))}
-      </View>
-
-      <View className="mt-4">
-        <Skeleton width="100%" height={48} radius={8} />
-      </View>
-    </View>
-  </View>
-);
-
-const SkeletonButtonCard = () => (
-  <View className="rounded-lg shadow border overflow-hidden border-neutral-200 bg-neutral-50 mb-4">
-    <View className="flex-row justify-between items-center p-3 border-b border-neutral-200">
-      <View className="flex-row items-center">
-        <Skeleton
-          width={20}
-          height={20}
-          radius={4}
-          style={{ marginRight: 8 }}
-        />
-        <Skeleton width="70%" height={22} radius={4} />
-      </View>
-    </View>
-    <View className="p-4">
-      <Skeleton
-        width="100%"
-        height={48}
-        radius={8}
-        style={{ marginBottom: 12 }}
-      />
-      <Skeleton width="100%" height={48} radius={8} />
-    </View>
-  </View>
-);
-
-const SkeletonInfoCard = () => (
-  <View className="rounded-lg shadow border overflow-hidden border-neutral-200 bg-neutral-50 mb-4">
-    <View className="flex-row justify-between items-center p-3 border-b border-neutral-200">
-      <View className="flex-row items-center">
-        <Skeleton
-          width={20}
-          height={20}
-          radius={4}
-          style={{ marginRight: 8 }}
-        />
-        <Skeleton width="60%" height={22} radius={4} />
-      </View>
-      <Skeleton width={16} height={16} radius={8} />
-    </View>
-    <View className="p-4">
-      <Skeleton
-        width="100%"
-        height={48}
-        radius={8}
-        style={{ marginBottom: 12 }}
-      />
-      <View className="mt-3 p-3 bg-neutral-50 rounded-lg border border-neutral-200">
-        <Skeleton
-          width="30%"
-          height={14}
-          radius={4}
-          style={{ marginBottom: 8 }}
-        />
-        <Skeleton width="20%" height={18} radius={4} />
-      </View>
-    </View>
+    <View className="p-4">{children}</View>
   </View>
 );
 
 const ProfileSkeletonScreen = () => (
-  <ScrollView className="flex-1 bg-neutral-100 mt-5">
-    <View className="bg-primary-500 p-6 pb-20">
-      <Skeleton width="30%" height={32} radius={4} />
+  <ScrollView
+    className="flex-1 bg-neutral-100"
+    contentContainerStyle={{ paddingBottom: 40 }}
+  >
+    <View className="bg-primary-500 p-6 pb-24">
+      <Skeleton width="40%" height={28} radius={6} />
     </View>
 
-    <View className="px-4 -mt-16 mb-4">
-      <SkeletonCard />
-    </View>
+    <View className="px-4 -mt-20">
+      <SkeletonCard titleWidth="50%">
+        <View className="flex-row mb-5">
+          <Skeleton
+            width={80}
+            height={80}
+            radius={40}
+            style={{ marginRight: 16 }}
+          />
+          <View className="flex-1 justify-center space-y-2.5">
+            <Skeleton width="80%" height={22} radius={4} />
+            <Skeleton width="50%" height={16} radius={4} />
+            <Skeleton width="60%" height={14} radius={4} />
+          </View>
+        </View>
+        <View className="border-t border-neutral-100 pt-4 space-y-4">
+          {[...Array(4)].map((_, index) => (
+            <View key={index}>
+              <Skeleton
+                width={`${30 + Math.random() * 20}%`}
+                height={12}
+                radius={3}
+                style={{ marginBottom: 6 }}
+              />
+              <Skeleton
+                width={`${60 + Math.random() * 30}%`}
+                height={16}
+                radius={4}
+              />
+            </View>
+          ))}
+          <View className="pt-2">
+            <Skeleton width="100%" height={48} radius={8} />
+          </View>
+        </View>
+      </SkeletonCard>
 
-    <View className="px-4 mb-4">
-      <SkeletonButtonCard />
-    </View>
+      <SkeletonCard titleWidth="60%">
+        <View className="space-y-3">
+          <Skeleton width="100%" height={48} radius={8} />
+          <Skeleton width="100%" height={48} radius={8} />
+        </View>
+      </SkeletonCard>
 
-    <View className="px-4 mb-8">
-      <SkeletonInfoCard />
+      <SkeletonCard titleWidth="55%">
+        <Skeleton
+          width="100%"
+          height={40}
+          radius={8}
+          style={{ marginBottom: 12 }}
+        />
+        <View className="p-3 bg-neutral-100 rounded-lg border border-neutral-200">
+          <Skeleton
+            width="40%"
+            height={12}
+            radius={3}
+            style={{ marginBottom: 6 }}
+          />
+          <Skeleton width="25%" height={16} radius={4} />
+        </View>
+      </SkeletonCard>
     </View>
   </ScrollView>
 );
 
 const ProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { profile, loading, error } = useSelector((state) => state.profile);
-  const [imageURI, setImageURI] = useState(null);
+  const { profile, loading, error, loadingPicture } = useSelector(
+    (state) => state.profile
+  );
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    dispatch(profileTrainer());
-  }, [dispatch, profile?.picture]);
+    if (!profile && !loading) {
+      dispatch(profileTrainer());
+    }
+  }, [dispatch, profile, loading]);
+
+  const onRefresh = React.useCallback(() => {
+    setIsRefreshing(true);
+    dispatch(profileTrainer()).finally(() => setIsRefreshing(false));
+  }, [dispatch]);
 
   const handleLogout = () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
+    RNAlert.alert(
+      "Confirm Logout",
+      "Are you sure you want to sign out?",
       [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
+        { text: "Cancel", style: "cancel" },
         {
           text: "Logout",
           onPress: () => {
@@ -221,7 +172,7 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const handleEditProfile = () => {
-    navigation.navigate("EditProfile");
+    navigation.navigate("EditProfile", { profileData: profile });
   };
 
   const handleChangePassword = () => {
@@ -229,166 +180,229 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const handleAboutApp = () => {
-    console.log("Navigate to about app info");
+    console.log("Navigate to about app info screen");
+    // navigation.navigate("AboutAppScreen");
   };
 
-  if (loading && !profile) {
+  if (loading && !profile && !isRefreshing) {
     return <ProfileSkeletonScreen />;
   }
 
   if (error && !profile) {
     return (
-      <View className="flex-1 justify-center items-center bg-neutral-100 p-4">
-        <MaterialIcons name="error-outline" size={48} color="#D32F2F" />
+      <View className="flex-1 justify-center items-center bg-neutral-100 p-6">
+        <MaterialIcons name="wifi-off" size={60} color="#CB3A31" />
         <Text
-          style={fonts.ecTextSubtitle1}
-          className="text-alert-500 mt-2 mb-4 text-center"
+          style={fonts.ecTextTitleM}
+          className="text-alert-700 mt-4 mb-2 text-center"
         >
-          Gagal memuat profil
+          Failed to Load Profile
         </Text>
         <Text
           style={fonts.ecTextBody2}
-          className="text-neutral-600 mb-6 text-center"
+          className="text-neutral-600 mb-8 text-center"
         >
-          {error.message || "Terjadi kesalahan saat memuat data profil."}
+          {error?.message ||
+            "An error occurred while fetching your profile details. Please check your connection."}
         </Text>
         <Button
-          title="Coba Lagi"
+          title="Retry"
           onPress={() => dispatch(profileTrainer())}
           variant="primary"
           icon={<MaterialIcons name="refresh" size={18} color="white" />}
           iconPosition="left"
+          loading={loading}
+          className="w-full"
+        />
+        <Button
+          title="Logout"
+          onPress={handleLogout}
+          variant="alert"
+          type="text"
+          icon={<MaterialIcons name="logout" size={18} color="#CB3A31" />}
+          iconPosition="left"
+          className="mt-3"
         />
       </View>
     );
   }
 
+  const renderProfileImage = () => {
+    const pictureUrl = profile?.profilePicture || profile?.picture;
+    if (loadingPicture) {
+      return <Skeleton width={80} height={80} radius={40} />;
+    }
+    if (pictureUrl) {
+      return (
+        <Image
+          source={{ uri: `${API_URL}/profile/picture/${pictureUrl}` }}
+          className="w-20 h-20 rounded-full border-4 border-white bg-neutral-200" // Add white border for contrast
+          resizeMode="cover"
+        />
+      );
+    }
+    const initials = profile?.name
+      ? profile.name.charAt(0).toUpperCase()
+      : profile?.username
+      ? profile.username.charAt(0).toUpperCase()
+      : "?";
+    return (
+      <View className="w-20 h-20 rounded-full bg-primary-400 justify-center items-center border-4 border-white">
+        <Text
+          className="text-white text-4xl font-bold"
+          style={{ includeFontPadding: false }}
+        >
+          {initials}
+        </Text>
+      </View>
+    );
+  };
+
+  const InfoRow = ({ label, value, iconName }) => (
+    <View className="mb-4">
+      <View className="flex-row items-center mb-1">
+        {iconName && (
+          <MaterialIcons
+            name={iconName}
+            size={14}
+            color="#757575"
+            style={{ marginRight: 4 }}
+          />
+        )}
+        <Text style={fonts.ecTextBody3} className="text-neutral-500">
+          {label}
+        </Text>
+      </View>
+      <Text style={fonts.ecTextBody2} className="text-neutral-800 ml-1">
+        {value || "-"}
+      </Text>
+    </View>
+  );
+
   return (
-    <ScrollView className="flex-1 bg-neutral-100 mt-5">
-      <View className="bg-primary-500 p-6 pb-20">
-        <Text style={fonts.ecTextHeader2} className="text-white mb-2">
-          Profile
+    <ScrollView
+      className="flex-1 bg-neutral-100"
+      contentContainerStyle={{ paddingBottom: 40 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          tintColor="#233D90"
+        />
+      }
+    >
+      <View className="bg-primary-500 p-6 pb-24">
+        <Text style={fonts.ecTextHeader1M} className="text-white">
+          My Profile
         </Text>
       </View>
 
-      <View className="px-4 -mt-16 mb-4">
+      <View className="px-4 -mt-20 mb-4">
         <Card
-          variant="neutral"
+          variant="base"
           title="Personal Information"
-          icon={<MaterialIcons name="person" size={20} color="#233D90" />}
+          icon={
+            <MaterialIcons name="person-outline" size={20} color="#192B66" />
+          }
           collapsible={false}
-          className="shadow-md"
+          className="shadow-md border border-neutral-200"
         >
-          <View className="flex-row mb-6">
-            <View className="mr-4">
-              {!profile?.profilePicture ? (
-                <View className="w-20 h-20 rounded-full bg-primary-300 justify-center items-center mr-3">
-                  <Text
-                    className="text-white text-4xl font-extrabold"
-                    style={fonts.ecTextBody1}
-                  >
-                    {profile?.username
-                      ? profile.username.charAt(0).toUpperCase()
-                      : "T"}
-                  </Text>
-                </View>
-              ) : (
-                <Image
-                  source={{
-                    uri: `${API_URL}/profile/picture/${
-                      profile?.profilePicture || profile?.picture
-                    }`,
-                  }}
-                  className="w-20 h-20 rounded-full"
-                />
-              )}
-            </View>
-            <View className="flex-1 justify-center">
-              <Text style={fonts.ecTextSubtitle1} className="text-neutral-800">
-                {profile?.name || "-"}
-              </Text>
+          <View className="flex-row items-center mb-5">
+            <View className="mr-4">{renderProfileImage()}</View>
+            <View className="flex-1">
               <Text
-                style={fonts.ecTextBody2}
-                className="text-primary-500 font-bold"
+                style={fonts.ecTextTitleM}
+                className="text-neutral-800 mb-0.5"
+                numberOfLines={1}
               >
-                {profile?.role || "Peran tidak tersedia"}
+                {profile?.name || profile?.username || "Name not set"}
               </Text>
-              <Text style={fonts.ecTextBody3} className="text-neutral-500 mt-1">
-                {profile?.joinDate ? `Bergabung sejak ${profile.joinDate}` : ""}
-              </Text>
+              <View className="flex-row items-center bg-primary-50 px-2 py-0.5 rounded-full self-start border border-primary-100 mb-1">
+                <MaterialIcons name="verified-user" size={12} color="#192B66" />
+                <Text
+                  style={fonts.ecTextBody3M}
+                  className="text-primary-700 ml-1 font-medium"
+                >
+                  {profile?.role?.replace("ROLE_", "") || "Role unavailable"}
+                </Text>
+              </View>
+              {profile?.joinDate && (
+                <Text style={fonts.ecTextBody3} className="text-neutral-500">
+                  Joined:{" "}
+                  {new Date(profile.joinDate).toLocaleDateString("en-GB")}
+                </Text>
+              )}
             </View>
           </View>
 
-          <View className="border-t border-neutral-200 pt-4">
-            <View className="mb-4">
-              <Text style={fonts.ecTextBody3} className="text-neutral-500 mb-1">
-                username
-              </Text>
-              <Text style={fonts.ecTextBody2} className="text-neutral-800">
-                {profile?.username ? profile?.username : "-"}
-              </Text>
-            </View>
+          <View className="border-t border-neutral-100 pt-4">
+            <InfoRow
+              label="Username"
+              value={profile?.username}
+              iconName="alternate-email"
+            />
+            <InfoRow
+              label="Email Address"
+              value={profile?.email}
+              iconName="email"
+            />
+            <InfoRow
+              label="Phone Number"
+              value={profile?.phoneNumber}
+              iconName="phone"
+            />
+            <InfoRow
+              label="Address"
+              value={profile?.address}
+              iconName="location-on"
+            />
 
-            <View className="mb-4">
-              <Text style={fonts.ecTextBody3} className="text-neutral-500 mb-1">
-                Email
-              </Text>
-              <Text style={fonts.ecTextBody2} className="text-neutral-800">
-                {profile?.email ? profile?.email : "-"}
-              </Text>
-            </View>
-
-            {profile?.role === "Trainer" &&
+            {profile?.role?.includes("TRAINER") &&
               profile?.batch &&
               profile.batch.length > 0 && (
-                <View>
-                  <Text
-                    style={fonts.ecTextBody3}
-                    className="text-neutral-500 mb-1"
-                  >
-                    Batch yang Diampu
-                  </Text>
-                  {profile.batch.map((batch, index) => (
-                    <View key={index} className="flex-row items-center mb-1">
-                      <MaterialIcons name="school" size={16} color="#546881" />
-                      <Text
-                        style={fonts.ecTextBody2}
-                        className="text-neutral-800 ml-2"
+                <View className="mb-4">
+                  <View className="flex-row items-center mb-1">
+                    <MaterialIcons
+                      name="school"
+                      size={14}
+                      color="#757575"
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text
+                      style={fonts.ecTextBody3}
+                      className="text-neutral-500"
+                    >
+                      Handling Batches
+                    </Text>
+                  </View>
+                  <View className="flex-wrap flex-row gap-1.5 ml-1">
+                    {profile.batch.map((batchName, index) => (
+                      <View
+                        key={index}
+                        className="bg-secondary-50 px-2 py-0.5 rounded-full border border-secondary-100"
                       >
-                        {batch}
-                      </Text>
-                    </View>
-                  ))}
+                        <Text
+                          style={fonts.ecTextBody3M}
+                          className="text-secondary-700"
+                        >
+                          {batchName}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
               )}
-
-            <View className="mb-4">
-              <Text style={fonts.ecTextBody3} className="text-neutral-500 mb-1">
-                Address
-              </Text>
-              <Text style={fonts.ecTextBody2} className="text-neutral-800">
-                {profile?.address ? profile?.address : "-"}
-              </Text>
-            </View>
-
-            <View className="mb-4">
-              <Text style={fonts.ecTextBody3} className="text-neutral-500 mb-1">
-                Phone Number
-              </Text>
-              <Text style={fonts.ecTextBody2} className="text-neutral-800">
-                {profile?.phoneNumber ? profile?.phoneNumber : "-"}
-              </Text>
-            </View>
           </View>
 
-          <View className="mt-4">
+          <View className="mt-4 border-t border-neutral-100 pt-4">
             <Button
-              title="Edit Profil"
+              title="Edit Profile"
               onPress={handleEditProfile}
               variant="primary"
-              icon={<MaterialIcons name="edit" size={18} color="white" />}
+              type="outlined"
+              icon={<MaterialIcons name="edit" size={16} color="#233D90" />}
               iconPosition="left"
-              className="mb-3"
+              className="w-full"
             />
           </View>
         </Card>
@@ -396,20 +410,23 @@ const ProfileScreen = ({ navigation }) => {
 
       <View className="px-4 mb-4">
         <Card
-          variant="neutral"
+          variant="base"
           title="Account & Security"
-          icon={<MaterialIcons name="security" size={20} color="#233D90" />}
+          icon={<MaterialIcons name="security" size={20} color="#192B66" />}
           collapsible={false}
-          className="shadow-md"
+          className="shadow-md border border-neutral-200"
         >
           <Button
             title="Change Password"
             onPress={handleChangePassword}
             variant="neutral"
-            type="outlined"
-            icon={<MaterialIcons name="lock" size={18} color="#546881" />}
+            type="base"
+            icon={
+              <MaterialIcons name="lock-outline" size={18} color="#575757" />
+            }
             iconPosition="left"
-            className="mb-3"
+            className="mb-3 w-full bg-neutral-100 border-neutral-200"
+            textClassName="text-neutral-700"
           />
 
           <Button
@@ -418,36 +435,34 @@ const ProfileScreen = ({ navigation }) => {
             variant="alert"
             icon={<MaterialIcons name="logout" size={18} color="white" />}
             iconPosition="left"
+            className="w-full"
           />
         </Card>
       </View>
 
       <View className="px-4 mb-8">
         <Card
-          variant="neutral"
-          title="Application Info"
-          icon={<MaterialIcons name="info" size={20} color="#233D90" />}
+          variant="base"
+          title="Application Information"
+          icon={<MaterialIcons name="info-outline" size={20} color="#192B66" />}
           collapsible={true}
           initiallyExpanded={false}
-          className="shadow-md"
+          className="shadow-md border border-neutral-200"
         >
           <Button
-            title="Info & Help"
+            title="Help & Support"
             onPress={handleAboutApp}
             variant="info"
             type="text"
-            icon={<MaterialIcons name="help" size={18} color="#4888D3" />}
+            icon={
+              <MaterialIcons name="help-outline" size={18} color="#4888D3" />
+            }
             iconPosition="left"
-            className="mb-2"
+            className="mb-3 self-start"
           />
 
-          <View className="mt-3 p-3 bg-neutral-50 rounded-lg border border-neutral-200">
-            <Text style={fonts.ecTextBody3} className="text-neutral-500 mb-1">
-              Versi Aplikasi
-            </Text>
-            <Text style={fonts.ecTextBody2} className="text-neutral-800">
-              1.0.0
-            </Text>
+          <View className="mt-1 p-3 bg-neutral-100 rounded-lg border border-neutral-200">
+            <InfoRow label="App Version" value="1.0.0" iconName="smartphone" />
           </View>
         </Card>
       </View>
