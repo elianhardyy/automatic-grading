@@ -9,24 +9,64 @@ import {
   Alert,
   Image,
 } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/common/Button";
 import { fonts } from "../../utils/font";
 import InputGroup from "../../components/common/InputGroup";
 import { MaterialIcons } from "@expo/vector-icons";
+import { forgotPassword } from "../../redux/slices/auth";
 
 const ForgotPasswordScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
+
   const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
   const [touchedFields, setTouchedFields] = useState({
     email: false,
   });
 
+  // Countdown timer states
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [resetTime, setResetTime] = useState(null);
+  const [expiryTime, setExpiryTime] = useState(null);
+  const [countdown, setCountdown] = useState({
+    minutes: 0,
+    seconds: 0,
+  });
+
   useEffect(() => {
     validateField();
     setIsFormValid(email.trim() !== "" && Object.keys(errors).length === 0);
   }, [email]);
+
+  // Countdown timer effect
+  useEffect(() => {
+    let timer;
+    if (showCountdown && expiryTime) {
+      timer = setInterval(() => {
+        const now = new Date().getTime();
+        const expiry = new Date(expiryTime).getTime();
+        const timeLeft = expiry - now;
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          setShowCountdown(false);
+        } else {
+          const minutes = Math.floor(
+            (timeLeft % (1000 * 60 * 60)) / (1000 * 60)
+          );
+          const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+          setCountdown({ minutes, seconds });
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [showCountdown, expiryTime]);
 
   const validateField = (fieldName = null) => {
     const newErrors = { ...errors };
@@ -72,25 +112,31 @@ const ForgotPasswordScreen = ({ navigation }) => {
 
   const handleSubmit = async () => {
     if (validate()) {
-      setIsLoading(true);
-
       try {
-        // Simulating API call
-        setTimeout(() => {
+        const result = await dispatch(forgotPassword({ email })).unwrap();
+
+        if (result && result.data) {
+          setResetTime(result.data.resetTime);
+          setExpiryTime(result.data.expiredTime);
+          setShowCountdown(true);
+
           Alert.alert(
             "Recovery Email Sent",
             "If an account exists with this email, you will receive password reset instructions."
           );
-          setIsLoading(false);
-        }, 1500);
+        }
       } catch (err) {
         Alert.alert(
           "Error",
-          "There was a problem sending the recovery email. Please try again."
+          err.message ||
+            "There was a problem sending the recovery email. Please try again."
         );
-        setIsLoading(false);
       }
     }
+  };
+
+  const formatTime = (value) => {
+    return value < 10 ? `0${value}` : value;
   };
 
   return (
@@ -142,19 +188,40 @@ const ForgotPasswordScreen = ({ navigation }) => {
               prefixIcon="email"
             />
 
-            <Button
-              title={isLoading ? "Sending..." : "Send Recovery Email"}
-              disabled={isLoading || !isFormValid}
-              className={
-                !isFormValid || isLoading
-                  ? "bg-neutral-300 border-neutral-100"
-                  : ""
-              }
-              textClassName={
-                !isFormValid || isLoading ? "text-neutral-500" : ""
-              }
-              onPress={handleSubmit}
-            />
+            {showCountdown ? (
+              <View className="bg-primary-50 p-4 rounded-lg mb-6">
+                <Text
+                  className="text-center text-primary-700"
+                  style={fonts.ecTextBody3}
+                >
+                  Password reset link sent! It will expire in:
+                </Text>
+                <Text className="text-center text-primary-800 text-xl font-bold mt-2">
+                  {formatTime(countdown.minutes)}:
+                  {formatTime(countdown.seconds)}
+                </Text>
+                <Text
+                  className="text-center text-neutral-600 mt-2"
+                  style={fonts.ecTextBody4}
+                >
+                  Check your email and follow the instructions
+                </Text>
+              </View>
+            ) : (
+              <Button
+                title={loading ? "Sending..." : "Send Recovery Email"}
+                disabled={loading || !isFormValid}
+                className={
+                  !isFormValid || loading
+                    ? "bg-neutral-300 border-neutral-100"
+                    : ""
+                }
+                textClassName={
+                  !isFormValid || loading ? "text-neutral-500" : ""
+                }
+                onPress={handleSubmit}
+              />
+            )}
           </View>
 
           {/* Back to Login Link */}
