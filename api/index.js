@@ -1,11 +1,9 @@
-// Update index.js (API setup)
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { authAPI } from "./auth";
+import { API_URL } from "../constant/uri";
 
-// Flag to prevent multiple refresh token requests
 let isRefreshing = false;
-// Store pending requests
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
@@ -21,7 +19,7 @@ const processQueue = (error, token = null) => {
 };
 
 export const api = axios.create({
-  baseURL: "http://192.168.218.251:8082/api/v1",
+  baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -40,13 +38,11 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle token expiration
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // If unauthorized error (401) and not already retrying
     if (
       error.response &&
       error.response.status === 401 &&

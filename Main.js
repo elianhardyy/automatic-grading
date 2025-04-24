@@ -6,19 +6,19 @@ import { checkAuthStatus } from "./redux/slice/auth";
 import { ActivityIndicator, View } from "react-native";
 
 export default function Main() {
-  const { isAuthenticated, loading } = useSelector((state) => state.auth);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(checkAuthStatus());
   }, [dispatch]);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#0066cc" />
-      </View>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <ActivityIndicator size="large" color="#0066cc" />
+  //     </View>
+  //   );
+  // }
 
   return isAuthenticated ? <AppNavigator /> : <AuthNavigator />;
 }
