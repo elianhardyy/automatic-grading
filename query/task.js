@@ -44,7 +44,6 @@ export const createTaskCriteria = async (criteriaData) => {
 
 export const createTaskWithCriteria = async (taskData, criteriaList) => {
   try {
-    // First create all the criteria to get their IDs
     const criteriaPromises = criteriaList.map((criteriaItem) =>
       taskAPI.createTaskCriteria(criteriaItem)
     );
