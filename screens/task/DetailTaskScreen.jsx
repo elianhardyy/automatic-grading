@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Modal,
+  RefreshControl,
+  StyleSheet,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,7 +24,6 @@ import EditTaskForm from "../../components/tasks/EditTaskForm";
 import { MotiView } from "moti";
 import { Easing } from "react-native-reanimated";
 
-// Skeleton component for loading states
 const Skeleton = ({ width = "100%", height = 20, radius = 6, style }) => (
   <MotiView
     style={[
@@ -30,16 +31,16 @@ const Skeleton = ({ width = "100%", height = 20, radius = 6, style }) => (
         width,
         height,
         borderRadius: radius,
-        backgroundColor: "#E0E0E0",
+        backgroundColor: "#E1E1E1",
       },
       style,
     ]}
-    from={{ opacity: 0.3 }}
+    from={{ opacity: 0.5 }}
     animate={{ opacity: 1 }}
     transition={{
       loop: true,
       type: "timing",
-      duration: 800,
+      duration: 1000,
       easing: Easing.inOut(Easing.ease),
     }}
   />
@@ -60,6 +61,7 @@ const DetailTaskScreen = ({ route, navigation }) => {
     isError,
     error,
     refetch,
+    isRefetching,
   } = useQuery({
     queryKey: ["task", taskId],
     queryFn: () => getTaskById(taskId),
@@ -72,11 +74,11 @@ const DetailTaskScreen = ({ route, navigation }) => {
     mutationFn: () => deleteTaskWithCriteria(taskId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.removeQueries({ queryKey: ["task", taskId] });
       navigation.goBack();
     },
     onError: (error) => {
       console.error("Delete task error:", error);
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
 
@@ -85,14 +87,17 @@ const DetailTaskScreen = ({ route, navigation }) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
       setSelectedCriteriaId(null);
+      setShowCriteriaDeleteConfirm(false);
     },
     onError: (error) => {
       console.error("Delete criteria error:", error);
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+      setShowCriteriaDeleteConfirm(false);
     },
   });
 
   const handleDeleteTask = () => {
+    setShowDeleteConfirm(false);
     deleteTaskMutation.mutate();
   };
 
@@ -103,16 +108,22 @@ const DetailTaskScreen = ({ route, navigation }) => {
   };
 
   const formatDateTime = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const dateOptions = { year: "numeric", month: "short", day: "numeric" };
-    const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: false };
-    return `${date.toLocaleDateString(
-      undefined,
-      dateOptions
-    )} ${date.toLocaleTimeString(undefined, timeOptions)}`;
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date"; // More robust check
+      const dateOptions = { year: "numeric", month: "short", day: "numeric" };
+      const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: true };
+      const formattedDate = date.toLocaleDateString("en-US", dateOptions);
+      const formattedTime = date.toLocaleTimeString("en-US", timeOptions);
+      return `${formattedDate} ${formattedTime}` || "Error Formatting";
+    } catch (e) {
+      console.error("Error formatting date:", e);
+      return "Error";
+    }
   };
 
+  // --- Modals ---
   const DeleteConfirmationModal = () => (
     <Modal
       animationType="fade"
@@ -120,34 +131,35 @@ const DetailTaskScreen = ({ route, navigation }) => {
       visible={showDeleteConfirm}
       onRequestClose={() => setShowDeleteConfirm(false)}
     >
-      <View className="flex-1 justify-center items-center bg-black/50">
-        <View className="bg-white w-4/5 rounded-lg p-5 shadow-lg">
+      <View className="flex-1 justify-center items-center bg-black/60 px-6">
+        <View className="bg-white w-full rounded-xl p-6 shadow-xl">
           <Text
-            style={fonts.ecTextBody1}
-            className="text-neutral-800 font-medium mb-2"
+            style={fonts.ecTextTitleM}
+            className="text-neutral-800 text-center mb-3"
           >
             Confirm Deletion
           </Text>
-          <Text style={fonts.ecTextBody2} className="text-neutral-600 mb-4">
+          <Text
+            style={fonts.ecTextBody2}
+            className="text-neutral-600 mb-6 text-center"
+          >
             Are you sure you want to delete this task? This action cannot be
             undone.
           </Text>
-          <View className="flex-row justify-end">
+          <View className="flex-row justify-center space-x-3">
             <Button
               title="Cancel"
-              variant="neutral"
-              type="text"
+              color="neutral"
+              type="outlined"
               onPress={() => setShowDeleteConfirm(false)}
-              className="mr-2"
+              className="flex-1"
             />
             <Button
               title="Delete"
               variant="alert"
               loading={deleteTaskMutation.isPending}
-              onPress={() => {
-                handleDeleteTask();
-                setShowDeleteConfirm(false);
-              }}
+              onPress={handleDeleteTask}
+              className="flex-1"
             />
           </View>
         </View>
@@ -165,37 +177,38 @@ const DetailTaskScreen = ({ route, navigation }) => {
         setSelectedCriteriaId(null);
       }}
     >
-      <View className="flex-1 justify-center items-center bg-black/50">
-        <View className="bg-white w-4/5 rounded-lg p-5 shadow-lg">
+      <View className="flex-1 justify-center items-center bg-black/60 px-6">
+        <View className="bg-white w-full rounded-xl p-6 shadow-xl">
           <Text
-            style={fonts.ecTextBody1}
-            className="text-neutral-800 font-medium mb-2"
+            style={fonts.ecTextTitleM}
+            className="text-neutral-800 text-center mb-3"
           >
             Delete Criteria
           </Text>
-          <Text style={fonts.ecTextBody2} className="text-neutral-600 mb-4">
+          <Text
+            style={fonts.ecTextBody2}
+            className="text-neutral-600 mb-6 text-center"
+          >
             Are you sure you want to delete this assessment criteria? This
             action cannot be undone.
           </Text>
-          <View className="flex-row justify-end">
+          <View className="flex-row justify-center space-x-3">
             <Button
               title="Cancel"
-              variant="neutral"
-              type="text"
+              color="neutral"
+              type="outlined"
               onPress={() => {
                 setShowCriteriaDeleteConfirm(false);
                 setSelectedCriteriaId(null);
               }}
-              className="mr-2"
+              className="flex-1"
             />
             <Button
               title="Delete"
               variant="alert"
               loading={deleteCriteriaMutation.isPending}
-              onPress={() => {
-                handleDeleteCriteria();
-                setShowCriteriaDeleteConfirm(false);
-              }}
+              onPress={handleDeleteCriteria}
+              className="flex-1"
             />
           </View>
         </View>
@@ -203,86 +216,104 @@ const DetailTaskScreen = ({ route, navigation }) => {
     </Modal>
   );
 
-  // Skeleton loading screen
   if (isLoading) {
     return (
-      <ScrollView className="flex-1 bg-white">
-        <View className="p-4">
-          {/* Back navigation skeleton */}
-          <View className="flex-row items-center mb-4">
-            <Skeleton
-              width={30}
-              height={30}
-              radius={15}
-              style={{ marginRight: 10 }}
-            />
-            <Skeleton width={100} height={16} />
-          </View>
-
-          {/* Header skeleton */}
-          <View className="mb-4">
-            <Skeleton height={30} style={{ marginBottom: 10 }} />
-            <View className="flex-row justify-end">
-              <Skeleton width={80} height={36} radius={8} />
-            </View>
-          </View>
-
-          {/* Task Category skeleton */}
-          <Skeleton height={50} style={{ marginBottom: 16 }} />
-
-          {/* Batch Information skeleton */}
-          <Skeleton height={50} style={{ marginBottom: 16 }} />
-
-          {/* Task Schedule skeleton */}
-          <Skeleton height={120} style={{ marginBottom: 16 }} />
-
-          {/* Assessment Criteria skeleton */}
-          <Skeleton height={40} style={{ marginBottom: 10 }} />
-          {[1, 2, 3].map((_, index) => (
-            <Skeleton key={index} height={80} style={{ marginBottom: 10 }} />
-          ))}
-
-          {/* Action Buttons skeleton */}
-          <View className="flex-row justify-between mt-6 mb-6">
-            <Skeleton width="48%" height={48} radius={8} />
-            <Skeleton width="48%" height={48} radius={8} />
-          </View>
-
-          {/* Assess button skeleton */}
-          <Skeleton height={48} radius={8} style={{ marginBottom: 20 }} />
+      <ScrollView
+        className="flex-1 bg-neutral-50"
+        contentContainerStyle={{ padding: 16 }}
+      >
+        <View className="flex-row items-center mb-5">
+          <Skeleton
+            width={24}
+            height={24}
+            radius={12}
+            style={{ marginRight: 8 }}
+          />
+          <Skeleton width={120} height={16} radius={4} />
         </View>
+
+        <View className="flex-row justify-between items-start mb-6">
+          <Skeleton
+            width="70%"
+            height={28}
+            radius={6}
+            style={{ marginBottom: 8 }}
+          />
+          <Skeleton width={90} height={40} radius={8} />
+        </View>
+
+        <Skeleton height={48} radius={10} style={{ marginBottom: 12 }} />
+        <Skeleton height={48} radius={10} style={{ marginBottom: 16 }} />
+
+        {/* Card Skeleton (Schedule) */}
+        <View className="mb-5">
+          <Skeleton height={30} radius={6} style={{ marginBottom: 10 }} />
+          <Skeleton height={100} radius={10} />
+        </View>
+
+        <View className="mb-6">
+          <Skeleton height={30} radius={6} style={{ marginBottom: 10 }} />
+          {[1, 2].map((_, index) => (
+            <Skeleton
+              key={index}
+              height={85}
+              radius={10}
+              style={{ marginBottom: 10 }}
+            />
+          ))}
+        </View>
+
+        <View className="flex-row justify-between mt-6 mb-4 space-x-4">
+          <Skeleton width="48%" height={48} radius={8} />
+          <Skeleton width="48%" height={48} radius={8} />
+        </View>
+
+        {/* Assess button skeleton */}
+        <Skeleton height={48} radius={8} style={{ marginBottom: 20 }} />
       </ScrollView>
     );
   }
 
   if (isError) {
     return (
-      <View className="flex-1 p-4 bg-white">
-        <Alert
-          variant="alert"
-          title="Error Loading Task"
-          message={
-            error?.message || "Failed to load task details. Please try again."
-          }
-        />
+      <View className="flex-1 p-6 bg-white justify-center items-center">
+        <MaterialIcons name="error-outline" size={60} color="#CB3A31" />
+        <Text
+          style={fonts.ecTextTitleM}
+          className="text-neutral-800 mt-4 mb-2 text-center"
+        >
+          Error Loading Task
+        </Text>
+        <Text
+          style={fonts.ecTextBody2}
+          className="text-neutral-600 mb-6 text-center"
+        >
+          {typeof error?.message === "string"
+            ? error.message
+            : "Failed to load task details. Please check your connection and try again."}
+        </Text>
         <Button
           title="Try Again"
           variant="primary"
-          onPress={refetch}
-          className="mt-4"
+          onPress={() => refetch()}
+          className="w-full mb-3"
+          icon={<MaterialIcons name="refresh" size={18} color="#FFFFFF" />}
+          iconPosition="left"
+          loading={isRefetching}
         />
         <Button
           title="Go Back"
-          variant="neutral"
+          color="neutral"
           type="outlined"
           onPress={() => navigation.goBack()}
-          className="mt-2"
+          className="w-full"
+          icon={<MaterialIcons name="arrow-back" size={18} color="#757575" />}
+          iconPosition="left"
         />
       </View>
     );
   }
 
-  // If editing, render the EditTaskForm component
   if (isEditing) {
     return (
       <EditTaskForm
@@ -297,8 +328,33 @@ const DetailTaskScreen = ({ route, navigation }) => {
     );
   }
 
+  const getWeightLevel = (weight) => {
+    if (weight < 5) return "Low";
+    if (weight < 10) return "Medium";
+    if (weight < 15) return "High";
+    return "Critical";
+  };
+
+  const getWeightBadgeStyle = (weight) => {
+    if (weight < 5) return "bg-success-50 border-success-300 text-success-700";
+    if (weight < 10)
+      return "bg-tertiary-50 border-tertiary-300 text-tertiary-700";
+    if (weight < 15) return "bg-warning-50 border-warning-300 text-warning-700";
+    return "bg-alert-50 border-alert-300 text-alert-700";
+  };
+
   return (
-    <ScrollView className="flex-1 bg-white">
+    <ScrollView
+      className="flex-1 bg-white"
+      contentContainerStyle={{ paddingBottom: 40 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          tintColor="#233D90"
+        />
+      }
+    >
       <DeleteConfirmationModal />
       <DeleteCriteriaConfirmationModal />
 
@@ -307,8 +363,9 @@ const DetailTaskScreen = ({ route, navigation }) => {
           variant="alert"
           title="Delete Failed"
           message={
-            deleteTaskMutation.error?.message ||
-            "Failed to delete task. Please try again."
+            typeof deleteTaskMutation.error?.message === "string"
+              ? deleteTaskMutation.error.message
+              : "Failed to delete task. Please try again."
           }
           className="mx-4 mt-4"
         />
@@ -319,201 +376,215 @@ const DetailTaskScreen = ({ route, navigation }) => {
           variant="alert"
           title="Delete Criteria Failed"
           message={
-            deleteCriteriaMutation.error?.message ||
-            "Failed to delete criteria. Please try again."
+            typeof deleteCriteriaMutation.error?.message === "string"
+              ? deleteCriteriaMutation.error.message
+              : "Failed to delete criteria. Please try again."
           }
           className="mx-4 mt-4"
         />
       )}
 
       <View className="p-4">
-        <View className="flex-row items-center mb-4">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="p-1 mr-2"
-          >
-            <MaterialIcons name="arrow-back" size={20} color="#233D90" />
-          </TouchableOpacity>
-          <Text style={fonts.ecTextBody2} className="text-primary-500">
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          className="flex-row items-center mb-4 self-start p-1"
+        >
+          <MaterialIcons name="arrow-back" size={20} color="#233D90" />
+          <Text style={fonts.ecTextBody2M} className="text-primary-500 ml-1">
             Back to Tasks
           </Text>
+        </TouchableOpacity>
+
+        <View className="flex-row justify-between items-start mb-5">
+          <Text
+            style={fonts.ecTextHeader1M}
+            className="text-neutral-800 flex-1 mr-3"
+            numberOfLines={3}
+            ellipsizeMode="tail"
+          >
+            {task?.name || "Task Details"}
+          </Text>
+          <Button
+            title="Edit"
+            color="primary"
+            type="outlined"
+            onPress={() => setIsEditing(true)}
+            icon={<MaterialIcons name="edit" size={16} color="#233D90" />}
+            iconPosition="left"
+            className="py-2 px-3"
+            textClassName="text-sm"
+          />
         </View>
 
-        {/* Header with Task Name and Actions */}
-        <View className="flex-row justify-between items-center mb-4">
-          <Text
-            style={fonts.ecTextHeader2M}
-            className="text-neutral-800 flex-1"
-          >
-            {task.name}
-          </Text>
-          <View className="flex-row">
-            <Button
-              title="Edit"
-              variant="primary"
-              type="outlined"
-              onPress={() => setIsEditing(true)}
-              icon={<MaterialIcons name="edit" size={18} color="#233D90" />}
-              iconPosition="left"
-              className="mr-2"
-            />
+        <View className="space-y-3 mb-5">
+          <View className="bg-primary-50 p-3.5 rounded-lg flex-row items-center border border-primary-100">
+            <MaterialIcons name="category" size={20} color="#192B66" />
+            <Text style={fonts.ecTextBody2} className="text-primary-800 ml-3">
+              Category:{" "}
+              <Text className="font-bold">
+                {task?.taskCategory?.name || "Uncategorized"}
+              </Text>
+            </Text>
+          </View>
+          <View className="bg-secondary-50 p-3.5 rounded-lg flex-row items-center border border-secondary-100">
+            <MaterialIcons name="groups" size={20} color="#B54C11" />
+            <Text style={fonts.ecTextBody2} className="text-secondary-800 ml-3">
+              Batch:{" "}
+              <Text className="font-bold">
+                {task?.batchTasks?.[0]?.batchName || "No Batch Assigned"}
+              </Text>
+            </Text>
           </View>
         </View>
 
-        {/* Task Category */}
-        <View className="bg-primary-50 p-3 rounded-lg mb-4 flex-row items-center">
-          <MaterialIcons name="category" size={20} color="#233D90" />
-          <Text style={fonts.ecTextBody2} className="text-primary-700 ml-2">
-            Category: {task.taskCategory?.name || "Not categorized"}
-          </Text>
-        </View>
-
-        {/* Batch Information */}
-        <View className="bg-secondary-50 p-3 rounded-lg mb-4 flex-row items-center">
-          <MaterialIcons name="dashboard" size={20} color="#FF6B18" />
-          <Text style={fonts.ecTextBody2} className="text-secondary-700 ml-2">
-            Batch: {task.batchTasks?.[0]?.batchName || "No batch"}
-          </Text>
-        </View>
-
-        {/* Dates */}
         <Card
           title="Task Schedule"
           variant="info"
           icon={
-            <MaterialIcons name="calendar-today" size={20} color="#0277BD" />
+            <MaterialIcons name="calendar-today" size={18} color="#336196" />
           }
-          className="mb-4"
+          className="mb-5"
+          collapsible={false}
         >
-          <View className="flex-row justify-between mb-2">
-            <Text style={fonts.ecTextBody2} className="text-neutral-700">
-              Assigned Date:
-            </Text>
-            <Text
-              style={fonts.ecTextBody2}
-              className="text-neutral-800 font-medium"
-            >
-              {formatDateTime(task.batchTasks?.[0]?.assignedDate)}
-            </Text>
-          </View>
-          <View className="flex-row justify-between">
-            <Text style={fonts.ecTextBody2} className="text-neutral-700">
-              Due Date:
-            </Text>
-            <Text
-              style={fonts.ecTextBody2}
-              className="text-neutral-800 font-medium"
-            >
-              {formatDateTime(task.batchTasks?.[0]?.dueDate)}
-            </Text>
+          <View className="space-y-2.5">
+            <View className="flex-row justify-between items-center">
+              <Text style={fonts.ecTextBody2} className="text-neutral-600">
+                Assigned Date:
+              </Text>
+              <Text
+                style={fonts.ecTextBody2M}
+                className="text-neutral-800 font-semibold"
+              >
+                {formatDateTime(task?.batchTasks?.[0]?.assignedDate) || ""}
+              </Text>
+            </View>
+            <View className="flex-row justify-between items-center">
+              <Text style={fonts.ecTextBody2} className="text-neutral-600">
+                Due Date:
+              </Text>
+              <Text
+                style={fonts.ecTextBody2M}
+                className="text-neutral-800 font-semibold"
+              >
+                {formatDateTime(task?.batchTasks?.[0]?.dueDate) || ""}
+              </Text>
+            </View>
           </View>
         </Card>
-
-        {/* Assessment Criteria */}
         <Card
           title="Assessment Criteria"
           variant="success"
-          icon={<MaterialIcons name="assessment" size={20} color="#2E7D32" />}
+          icon={<MaterialIcons name="checklist" size={18} color="#30684D" />}
           className="mb-6"
+          initiallyExpanded={true}
         >
-          {task.taskCriterias && task.taskCriterias.length > 0 ? (
-            task.taskCriterias.map((criteria, index) => (
-              <View
-                key={criteria.id}
-                className={`p-3 ${
-                  index !== task.taskCriterias.length - 1
-                    ? "border-b border-neutral-200"
-                    : ""
-                }`}
-              >
-                <View className="flex-row justify-between mb-1">
-                  <View className="flex-row items-center">
+          {task?.taskCriterias && task.taskCriterias.length > 0 ? (
+            <View>
+              {task.taskCriterias.map((criteria, index) => {
+                const weightLevel = getWeightLevel(criteria.weight);
+                const badgeStyle = getWeightBadgeStyle(criteria.weight);
+
+                return (
+                  <View
+                    key={criteria.id}
+                    className={`py-3 pr-10 relative ${
+                      index !== task.taskCriterias.length - 1
+                        ? "border-b border-neutral-200"
+                        : ""
+                    }`}
+                  >
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSelectedCriteriaId(criteria.id);
+                        setShowCriteriaDeleteConfirm(true);
+                      }}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      // Adjust positioning: top-3 (little higher), right-2
+                      className="absolute top-3 right-2 p-1.5 rounded-full bg-neutral-100 active:bg-alert-100"
+                    >
+                      <MaterialIcons
+                        name="delete-outline"
+                        size={18}
+                        color="#B54C11"
+                      />
+                    </TouchableOpacity>
+
                     <Text
-                      style={fonts.ecTextBody2}
-                      className="text-neutral-800 font-medium"
+                      style={fonts.ecTextSubtitle2M}
+                      className="text-neutral-800 mb-1.5" // Add bottom margin
                     >
                       Criteria {index + 1}
                     </Text>
-                    <View
-                      className={`px-2 py-0.5 rounded-full ml-2 ${
-                        criteria.weight < 5
-                          ? "bg-success-100 border border-success-500"
-                          : criteria.weight < 10
-                          ? "bg-neutral-100 border border-tertiary-500"
-                          : criteria.weight < 15
-                          ? "bg-neutral-100 border border-secondary-500"
-                          : "bg-neutral-100 border border-alert-500"
-                      }`}
-                    >
-                      <Text
-                        style={fonts.ecTextBody3}
-                        className={`font-medium ${
-                          criteria.weight < 5
-                            ? "text-success-800"
-                            : criteria.weight < 10
-                            ? "text-neutral-800"
-                            : criteria.weight < 15
-                            ? "text-secondary-800"
-                            : "text-alert-800"
-                        }`}
+
+                    {/* Weight Badge - Below Title */}
+                    <View className="self-start mb-2">
+                      {/* Use self-start to make it only as wide as content */}
+                      <View
+                        className={`px-2.5 py-1 rounded-full border ${badgeStyle}`}
                       >
-                        Weight: {criteria.weight} •{" "}
-                        {criteria.weight < 5
-                          ? "Low"
-                          : criteria.weight < 10
-                          ? "Medium"
-                          : criteria.weight < 15
-                          ? "High"
-                          : "Critical"}
-                      </Text>
+                        <Text
+                          style={fonts.ecTextBody3M} // Use Body3M for badge text
+                          // Text color is now part of badgeStyle
+                          className={`font-semibold`}
+                        >
+                          Weight: {criteria.weight} • {weightLevel}
+                        </Text>
+                      </View>
                     </View>
+
+                    <Text
+                      style={fonts.ecTextBody3}
+                      className="text-neutral-600 leading-relaxed"
+                    >
+                      {criteria.description || ""}
+                    </Text>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setSelectedCriteriaId(criteria.id);
-                      setShowCriteriaDeleteConfirm(true);
-                    }}
-                    className="p-1"
-                  >
-                    <MaterialIcons name="close" size={18} color="#CB3A31" />
-                  </TouchableOpacity>
-                </View>
-                <Text style={fonts.ecTextBody2} className="text-neutral-700">
-                  {criteria.description}
-                </Text>
-              </View>
-            ))
+                );
+              })}
+            </View>
           ) : (
-            <Text style={fonts.ecTextBody2} className="text-neutral-500 italic">
-              No assessment criteria defined
-            </Text>
+            <View className="items-center py-4">
+              <MaterialIcons name="info-outline" size={24} color="#9A9A9A" />
+              <Text
+                style={fonts.ecTextBody2M}
+                className="text-neutral-500 italic mt-2"
+              >
+                No assessment criteria defined for this task.
+              </Text>
+            </View>
           )}
         </Card>
 
-        {/* Action Buttons */}
-        <View className="flex-row mb-6">
+        <View className="flex-row space-x-3 mb-3">
           <Button
             title="Go Back"
-            variant="neutral"
+            color="neutral"
             type="outlined"
             onPress={() => navigation.goBack()}
-            className="flex-1 mr-2"
+            className="flex-1"
+            icon={<MaterialIcons name="arrow-back" size={18} color="#757575" />}
+            iconPosition="left"
           />
           <Button
             title="Delete Task"
             variant="alert"
             onPress={() => setShowDeleteConfirm(true)}
-            className="flex-1 ml-2"
-            icon={<MaterialIcons name="delete" size={18} color="#FFFFFF" />}
+            className="flex-1"
+            icon={
+              <MaterialIcons name="delete-sweep" size={18} color="#FFFFFF" />
+            }
             iconPosition="left"
+            loading={deleteTaskMutation.isPending}
           />
         </View>
         <Button
-          title={"Assess"}
+          title={"Assess Task"}
           variant="primary"
-          onPress={() => console.log("assess")}
-          className="w-full mt-2"
-          icon={<MaterialIcons name="assessment" size={18} color="#FFFFFF" />}
+          onPress={() =>
+            console.log("Navigate to Assess screen for task:", taskId)
+          }
+          className="w-full"
+          icon={<MaterialIcons name="assessment" size={20} color="#FFFFFF" />}
           iconPosition="left"
         />
       </View>
