@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -6,31 +6,39 @@ import {
   FlatList,
   TouchableOpacity,
   StatusBar,
-  TextInput,
+  ActivityIndicator,
+  StyleSheet,
 } from "react-native";
+// Pastikan MaterialIcons diimpor dengan benar
 import { MaterialIcons } from "@expo/vector-icons";
 import { MotiView } from "moti";
 import { Easing } from "react-native-reanimated";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+
+// --- Import Query ---
 import { fetchTask, fetchAllTaskCategories } from "../../query/task";
 import { fetchAllBatchByMe } from "../../query/batch";
+
+// --- Import Utils ---
 import { fonts } from "../../utils/font";
+
+// --- Import Komponen Kustom Anda ---
 import Button from "../../components/common/Button";
 import Alert from "../../components/common/Alert";
 import Card from "../../components/common/Card";
 import Select from "../../components/common/Select";
+import Badge from "../../components/common/Badge";
+import InputGroup from "../../components/common/InputGroup"; // Pastikan InputGroup mendukung ikon
+
+// --- Import Redux ---
 import { useDispatch } from "react-redux";
 import { setOngoing } from "../../redux/slice/ongoing";
-import Badge from "../../components/common/Badge";
 
+// --- Skeleton Components ---
+// ... (SkeletonCard, SkeletonFilter tetap sama) ...
 const SkeletonCard = () => (
   <MotiView
-    style={{
-      borderRadius: 8,
-      marginBottom: 12,
-      padding: 16,
-      backgroundColor: "#F5F5F5",
-    }}
+    style={styles.skeletonCardContainer}
     from={{ opacity: 0.5 }}
     animate={{ opacity: 1 }}
     transition={{
@@ -42,134 +50,49 @@ const SkeletonCard = () => (
     }}
   >
     <MotiView
-      style={{
-        height: 22,
-        width: "70%",
-        backgroundColor: "#E0E0E0",
-        borderRadius: 4,
-        marginBottom: 12,
-      }}
+      style={styles.skeletonLineLong}
       from={{ opacity: 0.6 }}
       animate={{ opacity: 1 }}
-      transition={{
-        loop: true,
-        type: "timing",
-        duration: 800,
-        easing: Easing.inOut(Easing.ease),
-      }}
+      transition={styles.skeletonTransition}
     />
-
-    <View
-      style={{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 8,
-      }}
-    >
+    <View style={styles.skeletonRowSpaceBetween}>
       <MotiView
-        style={{
-          height: 16,
-          width: "30%",
-          backgroundColor: "#E0E0E0",
-          borderRadius: 4,
-        }}
+        style={styles.skeletonLineMedium}
         from={{ opacity: 0.6 }}
         animate={{ opacity: 1 }}
-        transition={{
-          loop: true,
-          type: "timing",
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-        }}
+        transition={styles.skeletonTransition}
       />
       <MotiView
-        style={{
-          height: 16,
-          width: "25%",
-          backgroundColor: "#E0E0E0",
-          borderRadius: 4,
-        }}
+        style={styles.skeletonLineShort}
         from={{ opacity: 0.6 }}
         animate={{ opacity: 1 }}
-        transition={{
-          loop: true,
-          type: "timing",
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-        }}
+        transition={styles.skeletonTransition}
       />
     </View>
-
     <MotiView
-      style={{
-        height: 8,
-        width: "100%",
-        backgroundColor: "#E0E0E0",
-        borderRadius: 4,
-        marginBottom: 8,
-      }}
+      style={styles.skeletonProgressBar}
       from={{ opacity: 0.6 }}
       animate={{ opacity: 1 }}
-      transition={{
-        loop: true,
-        type: "timing",
-        duration: 800,
-        easing: Easing.inOut(Easing.ease),
-      }}
+      transition={styles.skeletonTransition}
     />
-
-    {/* Bottom text skeleton */}
     <MotiView
-      style={{
-        height: 16,
-        width: "40%",
-        backgroundColor: "#E0E0E0",
-        borderRadius: 4,
-        marginBottom: 12,
-      }}
+      style={styles.skeletonLineMedium}
       from={{ opacity: 0.6 }}
       animate={{ opacity: 1 }}
-      transition={{
-        loop: true,
-        type: "timing",
-        duration: 800,
-        easing: Easing.inOut(Easing.ease),
-      }}
+      transition={styles.skeletonTransition}
     />
-
-    {/* Button skeleton */}
-    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+    <View style={[styles.skeletonRowSpaceBetween, { marginTop: 12 }]}>
       <MotiView
-        style={{
-          height: 36,
-          width: "48%",
-          backgroundColor: "#E0E0E0",
-          borderRadius: 4,
-        }}
+        style={styles.skeletonButton}
         from={{ opacity: 0.6 }}
         animate={{ opacity: 1 }}
-        transition={{
-          loop: true,
-          type: "timing",
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-        }}
+        transition={styles.skeletonTransition}
       />
       <MotiView
-        style={{
-          height: 36,
-          width: "48%",
-          backgroundColor: "#E0E0E0",
-          borderRadius: 4,
-        }}
+        style={styles.skeletonButton}
         from={{ opacity: 0.6 }}
         animate={{ opacity: 1 }}
-        transition={{
-          loop: true,
-          type: "timing",
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-        }}
+        transition={styles.skeletonTransition}
       />
     </View>
   </MotiView>
@@ -177,12 +100,7 @@ const SkeletonCard = () => (
 
 const SkeletonFilter = () => (
   <MotiView
-    style={{
-      height: 40,
-      backgroundColor: "#E0E0E0",
-      borderRadius: 4,
-      marginBottom: 8,
-    }}
+    style={styles.skeletonFilter}
     from={{ opacity: 0.6 }}
     animate={{ opacity: 1 }}
     transition={{
@@ -193,6 +111,27 @@ const SkeletonFilter = () => (
     }}
   />
 );
+// ----------------------------------------------------
+
+// ... (transformTaskData, useInfiniteQuery, useQuery, filter options, etc. tetap sama) ...
+const transformTaskData = (task) => {
+  const batchTask = task.batchTasks?.[0] || {};
+  return {
+    id: task.id,
+    name: task.name || "Untitled Task",
+    category: task.taskCategory?.name || "Uncategorized",
+    categoryId: task.taskCategory?.id || "",
+    batch: batchTask.batchName || "N/A",
+    batchNumber: batchTask.batchNumber || "",
+    batchId: batchTask.batchId || "",
+    deadline: batchTask.dueDate || new Date().toISOString(),
+    assignedDate: batchTask.assignedDate || new Date().toISOString(),
+    totalTrainees: batchTask.totalTrainees ?? 0,
+    assessedTrainees: batchTask.assessedTrainees ?? 0,
+    createdAt: batchTask.assignedDate || new Date().toISOString(),
+    status: task.status || "ongoing",
+  };
+};
 
 const TaskScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -200,190 +139,191 @@ const TaskScreen = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState("all");
   const [isFilterVisible, setIsFilterVisible] = useState(false);
 
-  // Filter states - changed null to empty string
   const [selectedBatch, setSelectedBatch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [sortBy, setSortBy] = useState("name");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(10);
 
-  // Create a filter object that includes the selected filters
-  const filter = {
-    page: currentPage,
-    size: pageSize,
-    sortBy: sortBy,
-    direction: "asc",
-    batchId: selectedBatch || undefined, // Add batchId to API filter
-    categoryId: selectedCategory || undefined, // Add categoryId to API filter
-    status: selectedStatus || undefined, // Add status to API filter
-    taskCategoryName: undefined,
-    batchName: undefined,
-  };
+  const queryFilter = useMemo(
+    () => ({
+      size: pageSize,
+      sortBy: sortBy,
+      direction:
+        sortBy === "assignedDate" || sortBy === "dueDate" ? "desc" : "asc",
+      batchId: selectedBatch || undefined,
+      categoryId: selectedCategory || undefined,
+    }),
+    [pageSize, sortBy, selectedBatch, selectedCategory]
+  );
 
-  // Fetch tasks using the filter
   const {
-    data: tasksData,
-    isLoading: isTasksLoading,
-    isError: isTasksError,
+    data: tasksPages,
     error: tasksError,
+    isError: isTasksError,
+    fetchNextPage,
+    hasNextPage,
+    isLoading: isTasksLoading,
+    isFetchingNextPage,
     refetch: refetchTasks,
-  } = useQuery({
-    queryKey: ["tasks", filter],
-    queryFn: () => fetchTask(filter),
-    onError: (error) => {
-      console.error("Error details:", error);
-      console.error("Response data:", error.response?.data.data);
+    isRefetching,
+  } = useInfiniteQuery({
+    queryKey: ["tasks", queryFilter],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await fetchTask({ ...queryFilter, page: pageParam });
+      if (!response || typeof response !== "object")
+        throw new Error("Invalid API response");
+      return response;
     },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage?.paging?.hasNext ? lastPage.paging.page + 1 : undefined,
+    onError: (error) =>
+      console.error(
+        "Error fetching tasks query:",
+        error?.message,
+        error?.response?.data
+      ),
   });
 
-  // Fetch categories for filter dropdown
   const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery({
     queryKey: ["taskCategories"],
     queryFn: fetchAllTaskCategories,
   });
-
-  // Fetch batches for filter dropdown
   const { data: batchesData, isLoading: isBatchesLoading } = useQuery({
-    queryKey: ["batches"],
-    queryFn: () => fetchAllBatchByMe(filter),
+    queryKey: ["batchesByMe"],
+    queryFn: () => fetchAllBatchByMe({ size: 1000 }),
   });
 
-  const isLoading = isTasksLoading || isCategoriesLoading || isBatchesLoading;
-  const isError = isTasksError;
-  const error = tasksError;
-  const data = tasksData;
+  const isFilterDataLoading = isCategoriesLoading || isBatchesLoading;
+  const isOverallLoading = isTasksLoading;
+  const isOverallError = isTasksError;
+  const overallError = tasksError;
 
-  // Transform API data to match our component expectations
-  const transformedTasks = React.useMemo(() => {
-    if (!data?.data) return [];
+  const transformedTasks = useMemo(
+    () =>
+      tasksPages?.pages?.flatMap((page) =>
+        Array.isArray(page?.data) ? page.data.map(transformTaskData) : []
+      ) ?? [],
+    [tasksPages?.pages]
+  );
 
-    return data.data.map((task) => {
-      const batchTask = task.batchTasks[0] || {};
-
-      return {
-        id: task.id,
-        name: task.name,
-        category: task.taskCategory?.name || "Uncategorized",
-        categoryId: task.taskCategory?.id || "",
-        batch: batchTask.batchName || "Unknown Batch",
-        batchNumber: batchTask.batchNumber || "",
-        batchId: batchTask.batchId || "",
-        deadline: batchTask.dueDate || new Date().toISOString(),
-        assignedDate: batchTask.assignedDate || new Date().toISOString(),
-        totalTrainees: batchTask.totalTrainees || 0,
-        assessedTrainees: batchTask.assessedTrainees || 0,
-        createdAt: batchTask.assignedDate || new Date().toISOString(),
-        status: task.status || "ongoing",
-      };
-    });
-  }, [data?.data]);
-
-  // Changed null to empty string in the options
-  const batchOptions = React.useMemo(() => {
+  const batchOptions = useMemo(() => {
     const defaultOption = [{ label: "All Batches", value: "" }];
-
-    if (!batchesData?.data) return defaultOption;
-
-    const batchOptions = batchesData.data.map((batch) => ({
+    const batches = batchesData?.data?.data ?? batchesData?.data ?? [];
+    if (!Array.isArray(batches)) return defaultOption;
+    const batchOpts = batches.map((batch) => ({
       label: batch.name,
       value: batch.id,
     }));
-
-    return [...defaultOption, ...batchOptions];
-  }, [batchesData?.data]);
-
-  // Changed null to empty string in the options
-  const categoryOptions = React.useMemo(() => {
+    return [...defaultOption, ...batchOpts];
+  }, [batchesData]);
+  const categoryOptions = useMemo(() => {
     const defaultOption = [{ label: "All Categories", value: "" }];
-
-    if (!categoriesData?.data) return defaultOption;
-
-    const categoryOptions = categoriesData.data.map((category) => ({
+    const categories = categoriesData?.data?.data ?? categoriesData?.data ?? [];
+    if (!Array.isArray(categories)) return defaultOption;
+    const categoryOpts = categories.map((category) => ({
       label: category.name,
       value: category.id,
     }));
-
-    return [...defaultOption, ...categoryOptions];
-  }, [categoriesData?.data]);
-
-  // Changed null to empty string in the options
+    return [...defaultOption, ...categoryOpts];
+  }, [categoriesData]);
   const statusOptions = [
     { label: "All Status", value: "" },
     { label: "Assessed", value: "assessed" },
     { label: "Not Assessed", value: "not_assessed" },
   ];
-
   const sortOptions = [
-    { label: "Due Date (closest first)", value: "dueDate" },
-    { label: "Assigned Date (newest first)", value: "assignedDate" },
     { label: "Name (A-Z)", value: "name" },
+    { label: "Due Date (Newest First)", value: "dueDate" },
+    { label: "Assigned Date (Newest First)", value: "assignedDate" },
   ];
 
-  // Check if a task is ongoing (between assigned date and due date)
   const isTaskOngoing = (task) => {
-    const currentDate = new Date();
-    const assignedDate = new Date(task.assignedDate);
-    const dueDate = new Date(task.deadline);
-
-    return currentDate >= assignedDate && currentDate < dueDate;
+    try {
+      const currentDate = new Date();
+      const assignedDate = new Date(task.assignedDate);
+      const dueDate = new Date(task.deadline);
+      if (isNaN(assignedDate.getTime()) || isNaN(dueDate.getTime()))
+        return false;
+      return currentDate >= assignedDate && currentDate < dueDate;
+    } catch {
+      return false;
+    }
   };
-
-  // Updated filtering logic to use local filtering for additional filtering beyond what the API provides
-  const filteredTasks = transformedTasks.filter((task) => {
-    const matchesSearch = task.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-
-    // Tab filter
-    const matchesTab =
-      selectedTab === "all" ||
-      (selectedTab === "ongoing" && isTaskOngoing(task)) ||
-      (selectedTab === "completed" &&
-        task.assessedTrainees === task.totalTrainees);
-
-    return matchesSearch && matchesTab;
-  });
-
-  const onlyOnGoingTasks = filteredTasks.filter((task) =>
-    isTaskOngoing(task) ? task : null
+  const filteredTasks = useMemo(() => {
+    let tasksToFilter = transformedTasks;
+    if (searchQuery)
+      tasksToFilter = tasksToFilter.filter((task) =>
+        task.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    if (selectedTab !== "all") {
+      tasksToFilter = tasksToFilter.filter((task) => {
+        if (selectedTab === "ongoing") return isTaskOngoing(task);
+        if (selectedTab === "completed")
+          return (
+            task.totalTrainees > 0 &&
+            task.assessedTrainees === task.totalTrainees
+          );
+        return true;
+      });
+    }
+    return tasksToFilter;
+  }, [transformedTasks, searchQuery, selectedTab, selectedStatus]);
+  const onlyOnGoingTasks = useMemo(
+    () => filteredTasks.filter(isTaskOngoing),
+    [filteredTasks]
   );
-
   useEffect(() => {
     dispatch(setOngoing(onlyOnGoingTasks));
   }, [onlyOnGoingTasks, dispatch]);
 
   const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "short", day: "numeric" };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    try {
+      const options = { year: "numeric", month: "short", day: "numeric" };
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
+      return date.toLocaleDateString(undefined, options);
+    } catch {
+      return "Invalid Date";
+    }
   };
-
   const getTaskStatusColor = (task) => {
-    const ratio = task.assessedTrainees / task.totalTrainees;
-
+    const total = task.totalTrainees ?? 0;
+    const assessed = task.assessedTrainees ?? 0;
+    const ratio = total > 0 ? assessed / total : 0;
+    let isOverdue = false;
+    try {
+      isOverdue = new Date(task.deadline) < new Date();
+      if (isNaN(new Date(task.deadline).getTime())) isOverdue = false;
+    } catch {
+      isOverdue = false;
+    }
+    if (ratio === 1 && total > 0) return "#43936C";
+    if (isOverdue) return "#CB3A31";
     if (ratio === 0) return "#E1E1E1";
-    if (ratio === 1) return "#43936C";
-
-    // Check if task is past deadline
-    const isOverdue = new Date(task.deadline) < new Date();
-    if (isOverdue) return "#CB3A31"; // Overdue - Alert
-
-    return "#233D90"; // In progress - Primary
+    return "#233D90";
   };
 
-  const handleAddTask = () => {
-    navigation.navigate("CreateTaskScreen");
-  };
-
-  const handleDetailTask = (taskId) => {
+  const handleAddTask = () => navigation.navigate("CreateTaskScreen");
+  const handleDetailTask = (taskId) =>
     navigation.navigate("DetailTaskScreen", { taskId });
-  };
+  const handleAssessTask = (taskId, batchId) =>
+    console.log("Navigate to Assess Task:", taskId, "Batch:", batchId);
 
+  // --- Render Item Task ---
   const renderTaskItem = ({ item }) => {
-    const progressPercentage =
-      (item.assessedTrainees / item.totalTrainees) * 100;
+    const total = item.totalTrainees ?? 0;
+    const assessed = item.assessedTrainees ?? 0;
+    const progressPercentage = total > 0 ? (assessed / total) * 100 : 0;
     const statusColor = getTaskStatusColor(item);
-    const isOverdue = new Date(item.deadline) < new Date();
+    let isOverdue = false;
+    try {
+      isOverdue = new Date(item.deadline) < new Date();
+      if (isNaN(new Date(item.deadline).getTime())) isOverdue = false;
+    } catch {
+      isOverdue = false;
+    }
 
     return (
       <Card
@@ -392,82 +332,120 @@ const TaskScreen = ({ navigation }) => {
         className="mb-3"
         collapsible={false}
         action={
-          <View className="flex-row justify-between">
+          <View style={styles.cardActionContainer}>
+            {/* --- PERBAIKAN ICON BUTTON --- */}
             <Button
               title="View Details"
-              variant="primary"
+              color="primary"
               type="outlined"
               onPress={() => handleDetailTask(item.id)}
               icon={
                 <MaterialIcons name="visibility" size={16} color="#233D90" />
-              }
+              } // Kembali ke visibility
               iconPosition="left"
+              className="flex-1 mr-1"
             />
             <Button
               title="Assess"
-              variant="primary"
+              color="primary"
+              type="base"
+              onPress={() => handleAssessTask(item.id, item.batchId)}
               icon={
                 <MaterialIcons name="assessment" size={16} color="#FFFFFF" />
-              }
+              } // Tetap assessment
               iconPosition="left"
+              className="flex-1 ml-1"
+              disabled={assessed === total && total > 0}
             />
+            {/* ----------------------------- */}
           </View>
         }
       >
-        <View className="mb-3">
-          <View className="flex-row justify-between items-center mb-2">
-            <View className="flex-row items-center">
-              <Text style={fonts.ecTextBody2} className="text-primary-500 mr-2">
-                {item.category}
-              </Text>
-              <View className="bg-neutral-100 px-2 py-1 rounded">
-                <Text style={fonts.ecTextBody3} className="text-neutral-600">
-                  {item.batch}
-                </Text>
-              </View>
+        <View style={styles.cardBody}>
+          <View style={styles.cardTopRow}>
+            <View style={styles.cardTopLeft}>
+              {item.category && item.category !== "Uncategorized" && (
+                <Badge
+                  text={item.category}
+                  color="primary"
+                  size="small"
+                  variant="outlined"
+                  style={styles.categoryBadge}
+                />
+              )}
+              {item.batch && item.batch !== "N/A" && (
+                <View style={styles.batchContainer}>
+                  {/* --- PERBAIKAN ICON BATCH --- */}
+                  <MaterialIcons
+                    name="group"
+                    size={12}
+                    color="#757575"
+                    style={styles.batchIcon}
+                  />
+                  {/* -------------------------- */}
+                  <Text style={[fonts.ecTextCaption, styles.batchText]}>
+                    {item.batch}
+                  </Text>
+                </View>
+              )}
             </View>
-
-            <View className="flex-row items-center">
+            <View style={styles.cardTopRight}>
+              {/* --- PERBAIKAN ICON DEADLINE --- */}
               <MaterialIcons
                 name="event"
                 size={16}
-                color={isOverdue ? "#CB3A31" : "#757575"}
+                color={
+                  isOverdue && progressPercentage < 100 ? "#CB3A31" : "#757575"
+                }
               />
+              {/* ----------------------------- */}
               <Text
-                style={fonts.ecTextBody2}
-                className={`ml-1 ${
-                  isOverdue ? "text-alert-500" : "text-neutral-500"
-                }`}
+                style={[
+                  fonts.ecTextBody3,
+                  styles.deadlineText,
+                  isOverdue && progressPercentage < 100 && styles.overdueText,
+                ]}
               >
                 {formatDate(item.deadline)}
               </Text>
             </View>
           </View>
 
-          {/* Progress bar */}
-          <View className="mb-1">
-            <View className="h-2 bg-neutral-200 rounded-full overflow-hidden">
-              <View
-                className="h-full rounded-full"
-                style={{
-                  width: `${progressPercentage}%`,
-                  backgroundColor: statusColor,
-                }}
-              />
-            </View>
-          </View>
-
-          <View className="flex-row justify-between items-center">
-            <Text style={fonts.ecTextBody3} className="text-neutral-600">
-              {item.assessedTrainees}/{item.totalTrainees} trainees assessed
-            </Text>
-
-            {isOverdue && (
-              <View className="bg-alert-50 px-2 py-1 rounded">
-                <Text style={fonts.ecTextBody3} className="text-alert-700">
-                  Overdue
-                </Text>
+          {total > 0 && (
+            <View style={styles.progressBarContainer}>
+              <View style={styles.progressBarTrack}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: `${progressPercentage}%`,
+                      backgroundColor: statusColor,
+                    },
+                  ]}
+                />
               </View>
+            </View>
+          )}
+
+          <View style={styles.cardBottomRow}>
+            <Text
+              style={[fonts.ecTextCaption, styles.progressText]}
+            >{`${assessed}/${total} assessed`}</Text>
+            {isOverdue && progressPercentage < 100 && (
+              <Badge
+                text="Overdue"
+                color="alert"
+                size="small"
+                variant="filled"
+              />
+            )}
+            {progressPercentage === 100 && total > 0 && (
+              <Badge
+                text="Completed"
+                color="success"
+                size="small"
+                variant="filled"
+              />
             )}
           </View>
         </View>
@@ -475,24 +453,57 @@ const TaskScreen = ({ navigation }) => {
     );
   };
 
+  // --- Render Empty State ---
   const renderEmptyList = () => (
-    <View className="flex-1 justify-center items-center py-8">
-      <MaterialIcons name="assignment" size={48} color="#C2C2C2" />
-      <Text style={fonts.ecTextSubtitle1} className="text-neutral-500 mt-2">
-        No tasks found
+    <View style={styles.emptyListContainer}>
+      {/* --- PERBAIKAN ICON EMPTY LIST --- */}
+      <MaterialIcons name="assignment_late" size={56} color="#D1D5DB" />
+      {/* ------------------------------- */}
+      <Text style={[fonts.ecTextSubtitle1, styles.emptyListTitle]}>
+        No Tasks Found
       </Text>
-      <Text
-        style={fonts.ecTextBody2}
-        className="text-neutral-400 text-center mt-1 px-6"
-      >
-        Try adjusting your filters or create a new task to get started
+      <Text style={[fonts.ecTextBody2, styles.emptyListMessage]}>
+        {!searchQuery && !selectedBatch && !selectedCategory && !selectedStatus
+          ? "There are no tasks matching your current view. Try creating one!"
+          : "No tasks match your current search or filter criteria. Try adjusting them."}
       </Text>
+      {!searchQuery &&
+        !selectedBatch &&
+        !selectedCategory &&
+        !selectedStatus &&
+        !isTasksLoading && (
+          <Button
+            title="Create New Task"
+            onPress={handleAddTask}
+            color="primary"
+            type="base"
+          />
+        )}
+      {(searchQuery || selectedBatch || selectedCategory || selectedStatus) &&
+        !isTasksLoading && (
+          <Button
+            title="Reset Filters"
+            onPress={handleResetFilters}
+            color="neutral"
+            type="outlined"
+          />
+        )}
+      {isOverallError && !isTasksLoading && (
+        <Button
+          title="Try Refresh"
+          onPress={() => refetchTasks()}
+          color="primary"
+          type="outlined"
+          style={styles.emptyListRefreshButton}
+        />
+      )}
     </View>
   );
 
+  // --- Render Skeleton List ---
   const renderSkeletonList = () => (
-    <View style={{ padding: 16 }}>
-      {Array(3)
+    <View style={styles.skeletonListContainer}>
+      {Array(5)
         .fill(0)
         .map((_, index) => (
           <SkeletonCard key={index} />
@@ -500,325 +511,281 @@ const TaskScreen = ({ navigation }) => {
     </View>
   );
 
-  // Updated to set empty strings
+  // --- Filter Handlers ---
   const handleResetFilters = () => {
     setSelectedBatch("");
     setSelectedCategory("");
     setSelectedStatus("");
     setSortBy("name");
-    // Reset to first page when filters change
-    setCurrentPage(1);
-    // Refetch with new parameters
-    refetchTasks();
+    setSearchQuery("");
   };
-
   const handleApplyFilters = () => {
     setIsFilterVisible(false);
-    // Reset to first page when filters change
-    setCurrentPage(1);
-    // Refetch with new parameters
-    refetchTasks();
   };
 
+  // --- Render Footer Loading ---
+  const renderListFooter = () =>
+    isFetchingNextPage ? (
+      <ActivityIndicator
+        size="large"
+        color="#233D90"
+        style={styles.listFooterLoader}
+      />
+    ) : null;
+
+  // --- Hitung Jumlah untuk Badge Tab ---
+  const countAll = filteredTasks.length;
+  const countOngoing = onlyOnGoingTasks.length;
+  const countCompleted = filteredTasks.filter(
+    (t) => t.totalTrainees > 0 && t.assessedTrainees === t.totalTrainees
+  ).length;
+
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50">
+    <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#233D90" barStyle="light-content" />
 
       {/* Header */}
-      <View className="bg-primary-500 p-4">
-        <View className="flex-row justify-between items-center">
-          <Text style={fonts.ecTextHeader2M} className="text-white">
-            Tasks
+      <View style={styles.headerContainer}>
+        <View style={styles.headerTopRow}>
+          <Text style={[fonts.ecTextHeader2M, styles.headerTitle]}>
+            Manage Tasks
           </Text>
-          <TouchableOpacity>
+          {/* --- PERBAIKAN ICON ADD HEADER --- */}
+          <TouchableOpacity
+            onPress={handleAddTask}
+            style={styles.headerAddButton}
+          >
             <MaterialIcons name="add-circle" size={28} color="#FFFFFF" />
           </TouchableOpacity>
+          {/* ------------------------------- */}
         </View>
-
-        {/* Search Bar */}
-        <View className="mt-3 flex-row items-center bg-white rounded-lg px-3 py-1">
-          <MaterialIcons name="search" size={20} color="#757575" />
-          <TextInput
-            placeholder="Search tasks..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            className="flex-1 p-2"
-            placeholderTextColor="#9A9A9A"
-          />
-          {searchQuery ? (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <MaterialIcons name="clear" size={20} color="#757575" />
-            </TouchableOpacity>
-          ) : null}
-        </View>
+        <InputGroup
+          placeholder="Search task name..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          variant="rounded"
+          // --- PERBAIKAN ICON SEARCH ---
+          prefixIcon="search" // Pastikan InputGroup Anda menerima prop ini dan menggunakan MaterialIcons
+          // ---------------------------
+          iconPosition="left"
+          // Tambahkan prop/logika untuk tombol clear jika diperlukan
+          // suffixIcon={searchQuery ? 'clear' : ''}
+          // onSuffixIconPress={() => setSearchQuery('')}
+        />
       </View>
 
       {/* Tab Filter */}
-      <View className="flex-row p-2 bg-neutral-100">
+      <View style={styles.tabContainer}>
         <TouchableOpacity
-          className={`flex-1 py-2 items-center ${
-            selectedTab === "all" ? "border-b-2 border-primary-500" : ""
-          }`}
+          style={[
+            styles.tabItem,
+            selectedTab === "all" && styles.tabItemActive,
+          ]}
           onPress={() => setSelectedTab("all")}
         >
-          <Text
-            style={fonts.ecTextBody2}
-            className={
-              selectedTab === "all" ? "text-primary-500" : "text-neutral-600"
-            }
-          >
-            All{" "}
+          <View style={styles.tabContent}>
+            <Text
+              style={[
+                fonts.ecTextBody3,
+                styles.tabText,
+                selectedTab === "all" && styles.tabTextActive,
+              ]}
+            >
+              All
+            </Text>
             <Badge
-              text={transformedTasks.length}
-              size="small"
+              text={countAll}
               color="primary"
+              size="small"
+              style={styles.tabBadge}
+              variant={selectedTab === "all" ? "filled" : "outlined"}
             />
-          </Text>
+          </View>
         </TouchableOpacity>
-
         <TouchableOpacity
-          className={`flex-1 py-2 items-center ${
-            selectedTab === "ongoing" ? "border-b-2 border-primary-500" : ""
-          }`}
+          style={[
+            styles.tabItem,
+            selectedTab === "ongoing" && styles.tabItemActive,
+          ]}
           onPress={() => setSelectedTab("ongoing")}
         >
-          <Text
-            style={fonts.ecTextBody2}
-            className={
-              selectedTab === "ongoing"
-                ? "text-primary-500"
-                : "text-neutral-600"
-            }
-          >
-            Ongoing{" "}
+          <View style={styles.tabContent}>
+            <Text
+              style={[
+                fonts.ecTextBody3,
+                styles.tabText,
+                selectedTab === "ongoing" && styles.tabTextActive,
+              ]}
+            >
+              Ongoing
+            </Text>
             <Badge
-              text={onlyOnGoingTasks.length}
-              size="small"
+              text={countOngoing}
               color="primary"
+              size="small"
+              style={styles.tabBadge}
+              variant={selectedTab === "ongoing" ? "filled" : "outlined"}
             />
-          </Text>
+          </View>
         </TouchableOpacity>
-
         <TouchableOpacity
-          className={`flex-1 py-2 items-center ${
-            selectedTab === "completed" ? "border-b-2 border-primary-500" : ""
-          }`}
+          style={[
+            styles.tabItem,
+            selectedTab === "completed" && styles.tabItemActive,
+          ]}
           onPress={() => setSelectedTab("completed")}
         >
-          <Text
-            style={fonts.ecTextBody2}
-            className={
-              selectedTab === "completed"
-                ? "text-primary-500"
-                : "text-neutral-600"
-            }
-          >
-            Completed
-          </Text>
+          <View style={styles.tabContent}>
+            <Text
+              style={[
+                fonts.ecTextBody3,
+                styles.tabText,
+                selectedTab === "completed" && styles.tabTextActive,
+              ]}
+            >
+              Completed
+            </Text>
+            <Badge
+              text={countCompleted}
+              color="primary"
+              size="small"
+              style={styles.tabBadge}
+              variant={selectedTab === "completed" ? "filled" : "outlined"}
+            />
+          </View>
         </TouchableOpacity>
       </View>
 
       {/* Filter Toggle Button */}
       <TouchableOpacity
-        className="flex-row items-center justify-between bg-neutral-50 p-3 border-b border-neutral-200"
+        style={styles.filterToggleButton}
         onPress={() => setIsFilterVisible(!isFilterVisible)}
       >
-        <View className="flex-row items-center">
+        <View style={styles.filterToggleLeft}>
+          {/* --- PERBAIKAN ICON FILTER TOGGLE --- */}
           <MaterialIcons name="filter-list" size={20} color="#233D90" />
-          <Text style={fonts.ecTextBody2} className="text-primary-500 ml-1">
+          {/* -------------------------------- */}
+          <Text style={[fonts.ecTextBody2, styles.filterToggleText]}>
             Filters & Sort
           </Text>
+          {(selectedBatch ||
+            selectedCategory ||
+            selectedStatus ||
+            sortBy !== "name") && <View style={styles.filterActiveIndicator} />}
         </View>
+        {/* --- PERBAIKAN ICON ARROW TOGGLE --- */}
         <MaterialIcons
           name={isFilterVisible ? "keyboard-arrow-up" : "keyboard-arrow-down"}
           size={24}
           color="#757575"
         />
+        {/* --------------------------------- */}
       </TouchableOpacity>
 
       {/* Filter Panel */}
+      {/* ... (Filter Panel tetap sama, tidak ada ikon yang perlu diubah di dalamnya kecuali jika komponen Select Anda menggunakannya) ... */}
       {isFilterVisible && (
-        <View className="bg-neutral-50 p-4 border-b border-neutral-200">
-          {isLoading ? (
-            // Skeleton loading for filter panel
+        <View style={styles.filterPanel}>
+          {isFilterDataLoading ? (
             <View>
-              <View className="flex-row justify-between mb-3">
-                <View className="flex-1 mr-2">
+              <View style={styles.filterSkeletonRow}>
+                <View style={styles.filterSkeletonColumn}>
                   <MotiView
-                    style={{
-                      height: 16,
-                      width: "50%",
-                      marginBottom: 8,
-                      backgroundColor: "#E0E0E0",
-                      borderRadius: 4,
-                    }}
+                    style={styles.filterSkeletonLabel}
                     from={{ opacity: 0.6 }}
                     animate={{ opacity: 1 }}
-                    transition={{
-                      loop: true,
-                      type: "timing",
-                      duration: 800,
-                      easing: Easing.inOut(Easing.ease),
-                    }}
+                    transition={styles.skeletonTransition}
                   />
                   <SkeletonFilter />
                 </View>
-                <View className="flex-1 ml-2">
+                <View style={styles.filterSkeletonColumn}>
                   <MotiView
-                    style={{
-                      height: 16,
-                      width: "50%",
-                      marginBottom: 8,
-                      backgroundColor: "#E0E0E0",
-                      borderRadius: 4,
-                    }}
+                    style={styles.filterSkeletonLabel}
                     from={{ opacity: 0.6 }}
                     animate={{ opacity: 1 }}
-                    transition={{
-                      loop: true,
-                      type: "timing",
-                      duration: 800,
-                      easing: Easing.inOut(Easing.ease),
-                    }}
+                    transition={styles.skeletonTransition}
                   />
                   <SkeletonFilter />
                 </View>
               </View>
-              <View className="flex-row justify-between mb-4">
-                <View className="flex-1 mr-2">
+              <View style={styles.filterSkeletonRow}>
+                <View style={styles.filterSkeletonColumn}>
                   <MotiView
-                    style={{
-                      height: 16,
-                      width: "50%",
-                      marginBottom: 8,
-                      backgroundColor: "#E0E0E0",
-                      borderRadius: 4,
-                    }}
+                    style={styles.filterSkeletonLabel}
                     from={{ opacity: 0.6 }}
                     animate={{ opacity: 1 }}
-                    transition={{
-                      loop: true,
-                      type: "timing",
-                      duration: 800,
-                      easing: Easing.inOut(Easing.ease),
-                    }}
+                    transition={styles.skeletonTransition}
                   />
                   <SkeletonFilter />
                 </View>
-                <View className="flex-1 ml-2">
+                <View style={styles.filterSkeletonColumn}>
                   <MotiView
-                    style={{
-                      height: 16,
-                      width: "50%",
-                      marginBottom: 8,
-                      backgroundColor: "#E0E0E0",
-                      borderRadius: 4,
-                    }}
+                    style={styles.filterSkeletonLabel}
                     from={{ opacity: 0.6 }}
                     animate={{ opacity: 1 }}
-                    transition={{
-                      loop: true,
-                      type: "timing",
-                      duration: 800,
-                      easing: Easing.inOut(Easing.ease),
-                    }}
+                    transition={styles.skeletonTransition}
                   />
                   <SkeletonFilter />
                 </View>
               </View>
-              <View className="flex-row">
+              <View style={styles.filterButtonSkeletonContainer}>
                 <MotiView
-                  style={{
-                    height: 36,
-                    flex: 1,
-                    marginRight: 8,
-                    backgroundColor: "#E0E0E0",
-                    borderRadius: 4,
-                  }}
+                  style={styles.filterButtonSkeleton}
                   from={{ opacity: 0.6 }}
                   animate={{ opacity: 1 }}
-                  transition={{
-                    loop: true,
-                    type: "timing",
-                    duration: 800,
-                    easing: Easing.inOut(Easing.ease),
-                  }}
+                  transition={styles.skeletonTransition}
                 />
                 <MotiView
-                  style={{
-                    height: 36,
-                    flex: 1,
-                    marginLeft: 8,
-                    backgroundColor: "#E0E0E0",
-                    borderRadius: 4,
-                  }}
+                  style={styles.filterButtonSkeleton}
                   from={{ opacity: 0.6 }}
                   animate={{ opacity: 1 }}
-                  transition={{
-                    loop: true,
-                    type: "timing",
-                    duration: 800,
-                    easing: Easing.inOut(Easing.ease),
-                  }}
+                  transition={styles.skeletonTransition}
                 />
               </View>
             </View>
           ) : (
             <>
-              <View className="flex-row justify-between mb-3">
-                <View className="flex-1 mr-2">
-                  <Text
-                    style={fonts.ecTextBody3}
-                    className="text-neutral-600 mb-1"
-                  >
+              <View style={styles.filterRow}>
+                <View style={styles.filterColumn}>
+                  <Text style={[fonts.ecTextBody3, styles.filterLabel]}>
                     Batch
                   </Text>
                   <Select
                     options={batchOptions}
                     value={selectedBatch}
                     onValueChange={setSelectedBatch}
-                    placeholder="Select Batch"
+                    placeholder="All Batches"
                     variant="rounded"
                   />
                 </View>
-                <View className="flex-1 ml-2">
-                  <Text
-                    style={fonts.ecTextBody3}
-                    className="text-neutral-600 mb-1"
-                  >
+                <View style={styles.filterColumn}>
+                  <Text style={[fonts.ecTextBody3, styles.filterLabel]}>
                     Category
                   </Text>
                   <Select
                     options={categoryOptions}
                     value={selectedCategory}
                     onValueChange={setSelectedCategory}
-                    placeholder="Select Category"
+                    placeholder="All Categories"
                     variant="rounded"
                   />
                 </View>
               </View>
-
-              <View className="flex-row justify-between mb-4">
-                <View className="flex-1 mr-2">
-                  <Text
-                    style={fonts.ecTextBody3}
-                    className="text-neutral-600 mb-1"
-                  >
+              <View style={styles.filterRow}>
+                <View style={styles.filterColumn}>
+                  <Text style={[fonts.ecTextBody3, styles.filterLabel]}>
                     Status
                   </Text>
                   <Select
                     options={statusOptions}
                     value={selectedStatus}
                     onValueChange={setSelectedStatus}
-                    placeholder="Select Status"
+                    placeholder="All Status"
                     variant="rounded"
                   />
                 </View>
-                <View className="flex-1 ml-2">
-                  <Text
-                    style={fonts.ecTextBody3}
-                    className="text-neutral-600 mb-1"
-                  >
+                <View style={styles.filterColumn}>
+                  <Text style={[fonts.ecTextBody3, styles.filterLabel]}>
                     Sort By
                   </Text>
                   <Select
@@ -830,18 +797,18 @@ const TaskScreen = ({ navigation }) => {
                   />
                 </View>
               </View>
-
-              <View className="flex-row">
+              <View style={styles.filterButtonContainer}>
                 <Button
-                  title="Reset Filters"
-                  variant="neutral"
+                  title="Reset"
+                  color="neutral"
                   type="outlined"
                   className="flex-1 mr-2"
                   onPress={handleResetFilters}
                 />
                 <Button
-                  title="Apply Filters"
-                  variant="primary"
+                  title="Apply"
+                  color="primary"
+                  type="base"
                   className="flex-1 ml-2"
                   onPress={handleApplyFilters}
                 />
@@ -852,16 +819,24 @@ const TaskScreen = ({ navigation }) => {
       )}
 
       {/* Task List */}
-      {isLoading ? (
+      {isOverallLoading && !isRefetching && !tasksPages?.pages?.length ? (
         renderSkeletonList()
-      ) : isError ? (
-        <View className="p-4">
+      ) : isOverallError && !tasksPages?.pages?.length ? (
+        <View style={styles.errorContainer}>
           <Alert
             variant="alert"
-            title="Error"
+            title="Failed to Load Tasks"
             message={
-              error?.message || "Failed to load tasks. Please try again later."
+              overallError?.message ||
+              "Could not fetch tasks. Please check connection and retry."
             }
+            className="w-full mb-4"
+          />
+          <Button
+            title="Retry"
+            onPress={() => refetchTasks()}
+            color="primary"
+            type="base"
           />
         </View>
       ) : (
@@ -869,36 +844,295 @@ const TaskScreen = ({ navigation }) => {
           data={filteredTasks}
           renderItem={renderTaskItem}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ padding: 16 }}
-          ListEmptyComponent={renderEmptyList}
+          contentContainerStyle={styles.listContentContainer}
+          ListEmptyComponent={
+            !isOverallLoading && !isRefetching ? renderEmptyList : null
+          }
           onEndReached={() => {
-            const paging = data?.paging;
-            if (paging?.hasNext) {
-              setCurrentPage((prev) => prev + 1);
-            }
+            if (hasNextPage && !isFetchingNextPage) fetchNextPage();
           }}
-          onEndReachedThreshold={0.5}
-          refreshing={isLoading}
+          onEndReachedThreshold={0.7}
+          ListFooterComponent={renderListFooter}
+          refreshing={isRefetching}
           onRefresh={refetchTasks}
+          showsVerticalScrollIndicator={false}
         />
       )}
 
       {/* FAB */}
-      <TouchableOpacity
-        className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-primary-500 items-center justify-center elevation-5"
-        style={{
-          elevation: 5,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.25,
-          shadowRadius: 3.84,
-        }}
-        onPress={handleAddTask}
-      >
-        <MaterialIcons name="add" size={32} color="#FFFFFF" />
-      </TouchableOpacity>
+      {!isFilterVisible && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={handleAddTask}
+          activeOpacity={0.8}
+        >
+          {/* --- PERBAIKAN ICON FAB --- */}
+          <MaterialIcons name="add" size={30} color="#FFFFFF" />
+          {/* ------------------------- */}
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 };
+
+// --- StyleSheet ---
+// ... (StyleSheet tetap sama seperti sebelumnya) ...
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: "#F9FAFB" }, // neutral-50
+  // Header
+  headerContainer: {
+    backgroundColor: "#233D90",
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  headerTopRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  headerTitle: { color: "#FFFFFF" },
+  headerAddButton: { padding: 4 },
+  // Tabs
+  tabContainer: {
+    flexDirection: "row",
+    padding: 4,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  }, // neutral-200
+  tabItem: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: "center",
+    borderRadius: 8,
+    marginHorizontal: 2,
+  },
+  tabItemActive: { backgroundColor: "#E0E7FF" }, // primary-50
+  tabContent: { flexDirection: "row", alignItems: "center" },
+  tabText: { color: "#4B5563" }, // neutral-600
+  tabTextActive: { color: "#1D4ED8", fontWeight: "500" }, // primary-600
+  tabBadge: { marginLeft: 6 },
+  // Filter Toggle
+  filterToggleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#FFFFFF",
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  filterToggleLeft: { flexDirection: "row", alignItems: "center" },
+  filterToggleText: { color: "#1D4ED8", marginLeft: 6 }, // primary-600
+  filterActiveIndicator: {
+    width: 8,
+    height: 8,
+    backgroundColor: "#F59E0B",
+    borderRadius: 4,
+    marginLeft: 8,
+  }, // secondary-500
+  // Filter Panel
+  filterPanel: {
+    backgroundColor: "#FFFFFF",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  filterRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  filterColumn: { flex: 1, marginHorizontal: 4 },
+  filterLabel: { color: "#4B5563", marginBottom: 4 }, // neutral-600
+  filterButtonContainer: { flexDirection: "row", marginTop: 8 },
+  // Filter Skeletons
+  filterSkeletonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  filterSkeletonColumn: { flex: 1, marginHorizontal: 4 },
+  filterSkeletonLabel: {
+    height: 14,
+    width: "40%",
+    marginBottom: 6,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 4,
+  },
+  filterButtonSkeletonContainer: { flexDirection: "row", marginTop: 8 },
+  filterButtonSkeleton: {
+    height: 44,
+    flex: 1,
+    marginHorizontal: 4,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 8,
+  },
+  // Card Item
+  cardActionContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  cardBody: { marginBottom: 4 },
+  cardTopRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
+  cardTopLeft: { flexShrink: 1, marginRight: 8 },
+  categoryBadge: { marginBottom: 4 },
+  batchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F3F4F6",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: "flex-start",
+    marginTop: 4,
+  },
+  batchIcon: { marginRight: 4 },
+  batchText: { color: "#4B5563" }, // neutral-600
+  cardTopRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexShrink: 0,
+    marginLeft: "auto",
+    paddingTop: 4,
+  },
+  deadlineText: { marginLeft: 4 },
+  overdueText: { color: "#EF4444" }, // alert-500
+  progressBarContainer: { marginVertical: 8 },
+  progressBarTrack: {
+    height: 6,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 3,
+    overflow: "hidden",
+  }, // neutral-200
+  progressBarFill: { height: "100%", borderRadius: 3 },
+  cardBottomRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 4,
+  },
+  progressText: { color: "#4B5563" }, // neutral-600
+  // List
+  listContentContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 96,
+  },
+  listFooterLoader: { marginVertical: 32 },
+  // Empty List
+  emptyListContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 32,
+    paddingBottom: 32,
+  }, // Added paddingBottom
+  emptyListTitle: { color: "#4B5563", marginTop: 16, textAlign: "center" }, // neutral-600
+  emptyListMessage: {
+    color: "#6B7280",
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: 24,
+  }, // neutral-500
+  emptyListRefreshButton: { marginTop: 16 },
+  // Error State
+  errorContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
+  // Skeleton List
+  skeletonListContainer: { paddingHorizontal: 16, paddingTop: 16 },
+  // Skeleton Card Styles
+  skeletonCardContainer: {
+    borderRadius: 8,
+    marginBottom: 12,
+    padding: 16,
+    backgroundColor: "#F3F4F6",
+  }, // neutral-100
+  skeletonTransition: {
+    loop: true,
+    type: "timing",
+    duration: 800,
+    easing: Easing.inOut(Easing.ease),
+  },
+  skeletonLineLong: {
+    height: 22,
+    width: "70%",
+    backgroundColor: "#E5E7EB",
+    borderRadius: 4,
+    marginBottom: 12,
+  }, // neutral-200
+  skeletonRowSpaceBetween: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  skeletonLineMedium: {
+    height: 16,
+    width: "40%",
+    backgroundColor: "#E5E7EB",
+    borderRadius: 4,
+  },
+  skeletonLineShort: {
+    height: 16,
+    width: "25%",
+    backgroundColor: "#E5E7EB",
+    borderRadius: 4,
+  },
+  skeletonProgressBar: {
+    height: 6,
+    width: "100%",
+    backgroundColor: "#E5E7EB",
+    borderRadius: 3,
+    marginBottom: 8,
+  },
+  skeletonButton: {
+    height: 44,
+    width: "48%",
+    backgroundColor: "#E5E7EB",
+    borderRadius: 8,
+  },
+  skeletonFilter: {
+    height: 48,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  // FAB
+  fab: {
+    position: "absolute",
+    bottom: 24,
+    right: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#FF6B18",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
+  },
+});
 
 export default TaskScreen;
