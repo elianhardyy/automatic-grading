@@ -5,6 +5,7 @@ node_modules/
 .npmrc
 # Expo
 .expo/
+.env
 dist/
 web-build/
 expo-env.d.ts
