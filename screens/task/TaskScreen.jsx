@@ -118,6 +118,7 @@ const transformTaskData = (task) => {
   const batchTask = task.batchTasks?.[0] || {};
   return {
     id: task.id,
+    batchTaskId: batchTask.id,
     name: task.name || "Untitled Task",
     category: task.taskCategory?.name || "Uncategorized",
     categoryId: task.taskCategory?.id || "",
@@ -308,8 +309,8 @@ const TaskScreen = ({ navigation }) => {
   const handleAddTask = () => navigation.navigate("CreateTaskScreen");
   const handleDetailTask = (taskId) =>
     navigation.navigate("DetailTaskScreen", { taskId });
-  const handleAssessTask = (taskId, batchId) =>
-    console.log("Navigate to Assess Task:", taskId, "Batch:", batchId);
+  const handleAssessTask = (taskId, batchId, item, batchTaskId) =>
+      {navigation.navigate("AssessmentTaskScreen", { batchTaskId })}
 
   // --- Render Item Task ---
   const renderTaskItem = ({ item }) => {
@@ -349,7 +350,7 @@ const TaskScreen = ({ navigation }) => {
               title="Assess"
               color="primary"
               type="base"
-              onPress={() => handleAssessTask(item.id, item.batchId)}
+              onPress={() => handleAssessTask(item.id, item.batchId, item, item.batchTaskId)}
               icon={
                 <MaterialIcons name="assessment" size={16} color="#FFFFFF" />
               } // Tetap assessment
