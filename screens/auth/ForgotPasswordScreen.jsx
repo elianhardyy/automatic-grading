@@ -14,7 +14,7 @@ import Button from "../../components/common/Button";
 import { fonts } from "../../utils/font";
 import InputGroup from "../../components/common/InputGroup";
 import { MaterialIcons } from "@expo/vector-icons";
-import { forgotPassword } from "../../redux/slices/auth";
+import { forgotPassword } from "../../redux/slice/auth";
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const dispatch = useDispatch();
