@@ -107,9 +107,7 @@ const EditProfileScreen = ({ navigation }) => {
     try {
       setImageUploading(true);
 
-      // Create a form data object to send the image
       const formData = new FormData();
-      // Get filename from uri
       const uriParts = imageUri.split(".");
       const fileType = uriParts[uriParts.length - 1];
       console.log("File type:", fileType);
@@ -119,10 +117,9 @@ const EditProfileScreen = ({ navigation }) => {
         name: `profile-picture.${fileType}`,
         type: `image/${fileType}`,
       });
-      // const splitImageUri = imageUri.split("/").pop();
-      // Dispatch the update profile picture action
+      const splitImageUri = imageUri.split("/").pop();
       await dispatch(updateProfilePicture(formData)).unwrap();
-      // dispatch(setProfilePicture(splitImageUri));
+      dispatch(setProfilePicture(splitImageUri));
       //setImage(imageUri);
       //Alert.alert("Success", "Profile picture updated successfully");
     } catch (error) {

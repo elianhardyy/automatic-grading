@@ -31,7 +31,7 @@ const CreateTaskForm = ({ navigation, batchId, goBack }) => {
   const [showDueDatePicker, setShowDueDatePicker] = useState(false);
   const [showDueTimePicker, setShowDueTimePicker] = useState(false);
   const [criteria, setCriteria] = useState([
-    { id: 1, description: "", weight: 1 },
+    { id: 1, description: "", weight: 100 },
   ]);
   const [successModal, setSuccessModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});

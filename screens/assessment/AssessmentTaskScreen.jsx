@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import {
-    View,
-    Text,
-    SafeAreaView,
-    FlatList,
-    TouchableOpacity,
-    StatusBar,
-    ActivityIndicator,
-    StyleSheet
+  View,
+  Text,
+  SafeAreaView,
+  FlatList,
+  TouchableOpacity,
+  StatusBar,
+  ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 // Pastikan MaterialIcons diimpor dengan benar
 import { MaterialIcons } from "@expo/vector-icons";
@@ -16,7 +16,7 @@ import { Easing } from "react-native-reanimated";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 // --- Import Query ---
-import { fetchAllTraineeTaskByBatchTaskId } from "../../query/traineeTask";
+import { traineeTaskService } from "../../services/query/traineeTaskService";
 
 // --- Import Utils ---
 import { fonts } from "../../utils/font";
@@ -31,190 +31,208 @@ import InputGroup from "../../components/common/InputGroup"; // Pastikan InputGr
 
 // --- Import Redux ---
 import { useDispatch } from "react-redux";
-import { setOngoing } from "../../redux/slice/ongoing";
+import { setOngoing } from "../../services/slice/ongoing";
+import GradingAssessmentTaskModal from "../../components/assessment/GradingAssessmentTaskModal";
 
 const AssessmentTaskScreen = ({ route, navigation }) => {
+  const { batchTaskId } = route.params;
+  const [showForm, setShowForm] = useState(false);
+  const [showTraineeTaskTypeSelection, setShowTraineeTaskTypeSelection] =
+    useState(false);
 
-    const {batchTaskId} = route.params;
-    const [showForm, setShowForm] = useState(false);
-    const [showTraineeTaskTypeSelection, setShowTraineeTaskTypeSelection] = useState(false);
+  const [sortBy, setSortBy] = useState("submitTime");
+  const [pageSize, setPageSize] = useState(10);
+  const [gradeModal, setGradeModal] = useState(false);
+  // const isFilterDataLoading = isCategoriesLoading || isBatchesLoading;
+  const [selectedTraineeTask, setSelectedTraineeTask] = useState(null);
+  const isOverallLoading = isTraineeTasksLoading;
+  const isOverallError = isTraineeTasksError;
+  const overallError = tasksError;
 
-    const [sortBy, setSortBy] = useState("submitTime");
-    const [pageSize] = useState(10);
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
 
-    // const isFilterDataLoading = isCategoriesLoading || isBatchesLoading;
-    const isOverallLoading = isTraineeTasksLoading;
-    const isOverallError = isTraineeTasksError;
-    const overallError = tasksError;
-
-    const formatDate = (dateString) => {
-        try {
-          const date = new Date(dateString);
-          if (isNaN(date.getTime())) return "Invalid Date";
-      
-          const options = {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false, // pakai jam 24 jam
-            timeZone: "Asia/Jakarta", // jika ingin pakai zona lokal Indonesia
-          };
-      
-          return date.toLocaleString("en-US", options); // atau "id-ID" kalau mau gaya Indonesia
-        } catch {
-          return "Invalid Date";
-        }
+      const options = {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false, // pakai jam 24 jam
+        timeZone: "Asia/Jakarta", // jika ingin pakai zona lokal Indonesia
       };
 
-    const queryFilter = useMemo(
-        () => ({
-          size: pageSize,
-          sortBy: sortBy,
-          direction:
-            sortBy === "assignedDate" || sortBy === "dueDate" ? "desc" : "asc",
-        //   batchId: selectedBatch || undefined,
-        //   categoryId: selectedCategory || undefined,
-        }),
-        [pageSize, sortBy]
-      );
+      return date.toLocaleString("en-US", options); // atau "id-ID" kalau mau gaya Indonesia
+    } catch {
+      return "Invalid Date";
+    }
+  };
 
-    const {
-        data: traineeTaskPages,
-        error: tasksError,
-        isError: isTraineeTasksError,
-        fetchNextPage,
-        hasNextPage,
-        isLoading: isTraineeTasksLoading,
-        isFetchingNextPage,
-        refetch: reFetchAllTraineeTaskByBatchTaskId,
-        isRefetching,
-      } = useInfiniteQuery({
-        queryKey: ["traineeTask", queryFilter],
-        queryFn: async ({ pageParam = 1 }) => {
-          const response = await fetchAllTraineeTaskByBatchTaskId({ ...queryFilter, page: pageParam, batchTaskId });
-          
-          if (!response || typeof response !== "object")
-            throw new Error("Invalid API response");
-          return response;
-        },
-        initialPageParam: 1,
-        getNextPageParam: (lastPage) =>
-          lastPage?.paging?.hasNext ? lastPage.paging.page + 1 : undefined,
-        onError: (error) =>
-          console.error(
-            "Error fetching traineeTask query:",
-            error?.message,
-            error?.response?.data
-          ),
-      });
+  const queryFilter = useMemo(
+    () => ({
+      size: pageSize,
+      sortBy: sortBy,
+      direction:
+        sortBy === "assignedDate" || sortBy === "dueDate" ? "desc" : "asc",
+      //   batchId: selectedBatch || undefined,
+      //   categoryId: selectedCategory || undefined,
+    }),
+    [pageSize, sortBy]
+  );
 
-    // const transformedTasks = useMemo(
-    //       () =>
-    //         traineeTaskPages?.pages?.flatMap((page) =>
-    //           Array.isArray(page?.data) ? page.data.map(transformTaskData) : []
-    //         ) ?? [],
-    //       [traineeTaskPages?.pages]
-    //     );
+  const handleGradeModal = (traineeTask) => {
+    setSelectedTraineeTask(traineeTask);
+    setGradeModal(true);
+  };
 
-    const renderEmptyList = () => (
-        <View style={styles.emptyListContainer}>
-            <MaterialIcons name="assignment-late" size={56} color="#D1D5DB" />
-        </View>
-      );
+  const closeGradeModal = () => {
+    setGradeModal(false);
+  };
+  const {
+    data: traineeTaskPages,
+    error: tasksError,
+    isError: isTraineeTasksError,
+    fetchNextPage,
+    hasNextPage,
+    isLoading: isTraineeTasksLoading,
+    isFetchingNextPage,
+    refetch: reFetchAllTraineeTaskByBatchTaskId,
+    isRefetching,
+  } = useInfiniteQuery({
+    queryKey: ["traineeTask", queryFilter],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response =
+        await traineeTaskService.fetchAllTraineeTaskByBatchTaskId(batchTaskId, {
+          ...queryFilter,
+          page: pageParam,
+        });
 
-    const renderTraineeTaskItem = ({ item }) => {
-        return (
-            <Card
-                    title={item.traineeName}
-                    variant="neutral"
-                    className="mb-3"
-                    collapsible={false}
-                    action={
-                      <View style={styles.cardActionContainer}>
-                        {/* --- PERBAIKAN ICON BUTTON --- */}
-                        <Button
-                          title="View Details"
-                          color="primary"
-                          type="outlined"
-                          onPress={() => navigation.navigate("DetailAssessmentTaskScreen", { data: item })}
-                          icon={
-                            <MaterialIcons name="visibility" size={16} color="#233D90" />
-                          } // Kembali ke visibility
-                          iconPosition="left"
-                          className="flex-1 mr-1"
-                        />
-                        <Button
-                          title="Grade"
-                          color="primary"
-                          type="base"
-                          onPress={() =>  (console.log("Muncul modal untuk grading"))}
-                          icon={
-                            <MaterialIcons name="grade" size={16} color="#FFFFFF" />
-                          } // Tetap assessment
-                          iconPosition="left"
-                          className="flex-1 ml-1"
-                        //   disabled={assessed === total && total > 0}
-                        />
-                        {/* ----------------------------- */}
-                      </View>
-                    }
-                  >
-                    <View style={styles.cardBody}>
-                    <View style={styles.cardTopRow}>
-                        <View style={styles.cardTopLeft}>
-                            {/* Badge Kategori */}
-                            {item.category && item.category !== "Uncategorized" && (
-                            <Badge
-                                text={item.category}
-                                color="primary"
-                                size="small"
-                                variant="outlined"
-                                style={styles.categoryBadge}
-                            />
-                            )}
+      if (!response || typeof response !== "object")
+        throw new Error("Invalid API response");
+      return response;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage?.paging?.hasNext ? lastPage.paging.page + 1 : undefined,
+    onError: (error) =>
+      console.error(
+        "Error fetching traineeTask query:",
+        error?.message,
+        error?.response?.data
+      ),
+  });
+  const traineetaskpagess = traineeTaskPages?.data;
+  console.log("ini trainee task page:", traineetaskpagess);
+  // const transformedTasks = useMemo(
+  //       () =>
+  //         traineeTaskPages?.pages?.flatMap((page) =>
+  //           Array.isArray(page?.data) ? page.data.map(transformTaskData) : []
+  //         ) ?? [],
+  //       [traineeTaskPages?.pages]
+  //     );
 
-                            {/* Info Batch */}
-                            {item.batch && item.batch !== "N/A" && (
-                            <View style={styles.batchContainer}>
-                                <MaterialIcons
-                                name="group"
-                                size={14}
-                                color="#616161"
-                                style={styles.batchIcon}
-                                />
-                                <Text style={[fonts.ecTextCaption, styles.batchText]}>
-                                {item.batch}
-                                </Text>
-                            </View>
-                            )}
-                        </View>
+  const renderEmptyList = () => (
+    <View style={styles.emptyListContainer}>
+      <MaterialIcons name="assignment-late" size={56} color="#D1D5DB" />
+    </View>
+  );
 
-                        {/* Deadline */}
-                        <View style={styles.cardTopRight}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <MaterialIcons
-                                name="event"
-                                size={16}
-                                color="#616161"
-                                style={{ marginRight: 4 }}
-                            />
-                            <Text
-                                style={[
-                                fonts.ecTextBody3,
-                                styles.deadlineText,
-                                // isOverdue && progressPercentage < 100 && styles.overdueText,
-                                ]}
-                            >
-                                {item.batchTask.dueDate ? formatDate(item.batchTask.dueDate) : "No Deadline"}
-                            </Text>
-                            </View>
-                        </View>
-                        </View>
+  const renderTraineeTaskItem = ({ item }) => {
+    return (
+      <Card
+        title={item.traineeName}
+        variant="neutral"
+        className="mb-3"
+        collapsible={false}
+        action={
+          <View style={styles.cardActionContainer}>
+            {/* --- PERBAIKAN ICON BUTTON --- */}
+            <Button
+              title="View Details"
+              color="primary"
+              type="outlined"
+              onPress={() =>
+                navigation.navigate("DetailAssessmentTaskScreen", {
+                  data: item,
+                })
+              }
+              icon={
+                <MaterialIcons name="visibility" size={16} color="#233D90" />
+              } // Kembali ke visibility
+              iconPosition="left"
+              className="flex-1 mr-1"
+            />
+            <Button
+              title="Grade"
+              color="primary"
+              type="base"
+              onPress={() => handleGradeModal(item)}
+              icon={<MaterialIcons name="grade" size={16} color="#FFFFFF" />} // Tetap assessment
+              iconPosition="left"
+              className="flex-1 ml-1"
+              //   disabled={assessed === total && total > 0}
+            />
+            {/* ----------------------------- */}
+          </View>
+        }
+      >
+        <View style={styles.cardBody}>
+          <View style={styles.cardTopRow}>
+            <View style={styles.cardTopLeft}>
+              {/* Badge Kategori */}
+              {item.category && item.category !== "Uncategorized" && (
+                <Badge
+                  text={item.category}
+                  color="primary"
+                  size="small"
+                  variant="outlined"
+                  style={styles.categoryBadge}
+                />
+              )}
 
-            
-                      {/* {total > 0 && (
+              {/* Info Batch */}
+              {item.batch && item.batch !== "N/A" && (
+                <View style={styles.batchContainer}>
+                  <MaterialIcons
+                    name="group"
+                    size={14}
+                    color="#616161"
+                    style={styles.batchIcon}
+                  />
+                  <Text style={[fonts.ecTextCaption, styles.batchText]}>
+                    {item.batch}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Deadline */}
+            <View style={styles.cardTopRight}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <MaterialIcons
+                  name="event"
+                  size={16}
+                  color="#616161"
+                  style={{ marginRight: 4 }}
+                />
+                <Text
+                  style={[
+                    fonts.ecTextBody3,
+                    styles.deadlineText,
+                    // isOverdue && progressPercentage < 100 && styles.overdueText,
+                  ]}
+                >
+                  {item.batchTask.dueDate
+                    ? formatDate(item.batchTask.dueDate)
+                    : "No Deadline"}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* {total > 0 && (
                         <View style={styles.progressBarContainer}>
                           <View style={styles.progressBarTrack}>
                             <View
@@ -229,141 +247,144 @@ const AssessmentTaskScreen = ({ route, navigation }) => {
                           </View>
                         </View>
                       )} */}
-            
-                        <View style={styles.cardBottomRow}>
-                            {item.grade ? (
-                                <>
-                                <Badge
-                                    text= {`Grade: ${item.grade}`}
-                                    color="success"
-                                    size="small"
-                                    variant="filled"
-                                />
-                                {item.submitTime <= item.dueDate ? (
-                                    <Badge
-                                    text="On Time"
-                                    color="success"
-                                    size="small"
-                                    variant="filled"
-                                    />
-                                ) : (
-                                    <Badge
-                                    text="Late"
-                                    color="warning"
-                                    size="small"
-                                    variant="filled"
-                                    />
-                                )}
-                                </>
-                            ) : (
-                                <Badge
-                                text="Not Graded Yet"
-                                color="alert"
-                                size="small"
-                                variant="filled"
-                                />
-                            )}
-                        </View>
-                    </View>
-                  </Card>
-        );
-    };
 
-    const renderListFooter = () => {
-        if (isFetchingNextPage) {
-          return (
-            <ActivityIndicator
-              size="large"
-              color="#233D90"
-              style={styles.listFooterLoader}
-            />
-          );
-        }
-        return null;
-      };
-
-    return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar backgroundColor="#233D90" barStyle="light-content" />
-    
-            {/* Header */}
-            <View style={styles.headerContainer}>
-                <View style={styles.headerTopRow}>
-                    <Text style={[fonts.ecTextHeader2M, styles.headerTitle]}>
-                        Trainees' TraineeTask
-                    </Text>
-                </View>
-            </View>
-
-            {isOverallLoading && !isRefetching && !tasksPages?.pages?.length ? (
-                    renderSkeletonList()
-                    ) : isOverallError && !tasksPages?.pages?.length ? (
-                        <View style={styles.errorContainer}>
-                            <Alert
-                                variant="alert"
-                                title="Failed to Load TraineeTasks"
-                                message={
-                                    overallError?.message ||
-                                    "Could not fetch traineeTask. Please check connection and retry."
-                                }
-                                className="w-full mb-4"
-                            />
-                            <Button
-                                title="Retry"
-                                onPress={() => reFetchAllTraineeTaskByBatchTaskId()}
-                                color="primary"
-                                type="base"
-                            />
-                        </View>
-                    ) : (
-                        // <FlatList
-                        //     data={filteredTraineeTasks}
-                        //     renderItem={renderTraineeTaskItem}
-                        //     keyExtractor={(item) => item.id}
-                        //     contentContainerStyle={styles.listContentContainer}
-                        //     ListEmptyComponent={
-                        //         !isOverallLoading && !isRefetching ? renderEmptyList : null
-                        //     }
-                        //     onEndReached={() => {
-                        //         if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-                        //     }}
-                        //     onEndReachedThreshold={0.7}
-                        //     ListFooterComponent={renderListFooter}
-                        //     refreshing={isRefetching}
-                        //     onRefresh={reFetchAllTraineeTaskByBatchTaskId}
-                        //     showsVerticalScrollIndicator={false}
-                        // />
-                        <FlatList
-                            data={traineeTaskPages?.pages?.flatMap((page) =>
-                              Array.isArray(page?.data) ? page.data : []
-                            ) ?? []}
-                            renderItem={renderTraineeTaskItem}
-                            keyExtractor={(item) => item.id}
-                            contentContainerStyle={styles.listContentContainer}
-                            ListEmptyComponent={
-                              !isOverallLoading && !isRefetching
-                                ? renderEmptyList
-                                : null
-                            }
-                            onEndReached={() => {
-                              if (hasNextPage && !isFetchingNextPage)
-                                fetchNextPage();
-                            }}
-                            onEndReachedThreshold={0.7}
-                            ListFooterComponent={renderListFooter}
-                            refreshing={isRefetching}
-                            onRefresh={reFetchAllTraineeTaskByBatchTaskId}
-                            showsVerticalScrollIndicator={false}
-                          />
-                    )}
-        </SafeAreaView>
+          <View style={styles.cardBottomRow}>
+            {item.grade ? (
+              <>
+                <Badge
+                  text={`Grade: ${item.grade}`}
+                  color="success"
+                  size="small"
+                  variant="filled"
+                />
+                {item.submitTime <= item.dueDate ? (
+                  <Badge
+                    text="On Time"
+                    color="success"
+                    size="small"
+                    variant="filled"
+                  />
+                ) : (
+                  <Badge
+                    text="Late"
+                    color="warning"
+                    size="small"
+                    variant="filled"
+                  />
+                )}
+              </>
+            ) : (
+              <Badge
+                text="Not Graded Yet"
+                color="alert"
+                size="small"
+                variant="filled"
+              />
+            )}
+          </View>
+        </View>
+      </Card>
     );
+  };
 
-}
+  const renderListFooter = () => {
+    if (isFetchingNextPage) {
+      return (
+        <ActivityIndicator
+          size="large"
+          color="#233D90"
+          style={styles.listFooterLoader}
+        />
+      );
+    }
+    return null;
+  };
 
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar backgroundColor="#233D90" barStyle="light-content" />
 
-// --- StyleSheet ---
-// ... (StyleSheet tetap sama seperti sebelumnya) ...
+      {/* Header */}
+      <View style={styles.headerContainer}>
+        <View style={styles.headerTopRow}>
+          <Text style={[fonts.ecTextHeader2M, styles.headerTitle]}>
+            Trainees' TraineeTask
+          </Text>
+        </View>
+      </View>
+
+      {isOverallLoading && !isRefetching && !tasksPages?.pages?.length ? (
+        renderSkeletonList()
+      ) : isOverallError && !tasksPages?.pages?.length ? (
+        <View style={styles.errorContainer}>
+          <Alert
+            variant="alert"
+            title="Failed to Load TraineeTasks"
+            message={
+              overallError?.message ||
+              "Could not fetch traineeTask. Please check connection and retry."
+            }
+            className="w-full mb-4"
+          />
+          <Button
+            title="Retry"
+            onPress={() => reFetchAllTraineeTaskByBatchTaskId()}
+            color="primary"
+            type="base"
+          />
+        </View>
+      ) : (
+        // <FlatList
+        //     data={filteredTraineeTasks}
+        //     renderItem={renderTraineeTaskItem}
+        //     keyExtractor={(item) => item.id}
+        //     contentContainerStyle={styles.listContentContainer}
+        //     ListEmptyComponent={
+        //         !isOverallLoading && !isRefetching ? renderEmptyList : null
+        //     }
+        //     onEndReached={() => {
+        //         if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+        //     }}
+        //     onEndReachedThreshold={0.7}
+        //     ListFooterComponent={renderListFooter}
+        //     refreshing={isRefetching}
+        //     onRefresh={reFetchAllTraineeTaskByBatchTaskId}
+        //     showsVerticalScrollIndicator={false}
+        // />
+        <FlatList
+          data={
+            traineeTaskPages?.pages?.flatMap((page) =>
+              Array.isArray(page?.data) ? page.data : []
+            ) ?? []
+          }
+          renderItem={renderTraineeTaskItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContentContainer}
+          ListEmptyComponent={
+            !isOverallLoading && !isRefetching ? renderEmptyList : null
+          }
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+          }}
+          onEndReachedThreshold={0.7}
+          ListFooterComponent={renderListFooter}
+          refreshing={isRefetching}
+          onRefresh={reFetchAllTraineeTaskByBatchTaskId}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+      {gradeModal && (
+        <GradingAssessmentTaskModal
+          navigation={navigation}
+          gradeModal={gradeModal}
+          closeGradeModal={closeGradeModal}
+          traineeTaskData={selectedTraineeTask}
+        />
+      )}
+    </SafeAreaView>
+  );
+};
+
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#F9FAFB" }, // neutral-50
   // Header
@@ -623,4 +644,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AssessmentTaskScreen
+export default AssessmentTaskScreen;

@@ -1,8 +1,18 @@
 import { useEffect } from "react";
-import { View, Text, SafeAreaView, ScrollView, ActivityIndicator, StatusBar, Easing, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  SafeAreaView,
+  ScrollView,
+  ActivityIndicator,
+  StatusBar,
+  Easing,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useDispatch } from "react-redux";
-import { setOngoing } from "../../redux/slice/ongoing";
+import { setOngoing } from "../../services/slice/ongoing";
 import Alert from "../../components/common/Alert";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
@@ -34,12 +44,8 @@ const DetailAssessmentTaskScreen = ({ route, navigation }) => {
 
       <View style={styles.cardBottomRow}>
         <View>
-          <Text style={{ color: "#4B5563" }}>
-            Grade: {item.grade ?? "-"}
-          </Text>
-          <Text style={{ color: "#4B5563" }}>
-            Notes: {item.notes ?? "-"}
-          </Text>
+          <Text style={{ color: "#4B5563" }}>Grade: {item.grade ?? "-"}</Text>
+          <Text style={{ color: "#4B5563" }}>Notes: {item.notes ?? "-"}</Text>
         </View>
         {item.submittedUrl ? (
           <TouchableOpacity
@@ -70,7 +76,7 @@ const DetailAssessmentTaskScreen = ({ route, navigation }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#233D90" />
-  
+
       <ScrollView
         contentContainerStyle={{ paddingBottom: 40 }}
         style={{ flex: 1, backgroundColor: "#FFF" }}
@@ -80,13 +86,18 @@ const DetailAssessmentTaskScreen = ({ route, navigation }) => {
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <MaterialIcons name="arrow-back" size={24} color="#FFF" />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { fontSize: 18, fontFamily: fonts.medium }]}>
+            <Text
+              style={[
+                styles.headerTitle,
+                { fontSize: 18, fontFamily: fonts.medium },
+              ]}
+            >
               Detail Assessment
             </Text>
             <View style={{ width: 24 }} />
           </View>
         </View>
-  
+
         <View style={{ padding: 16 }}>
           {traineeTaskData ? (
             <>
@@ -139,10 +150,11 @@ const DetailAssessmentTaskScreen = ({ route, navigation }) => {
                     marginTop: 4,
                   }}
                 >
-                  Due Date: {new Date(traineeTaskData.batchTask.dueDate).toLocaleString()}
+                  Due Date:{" "}
+                  {new Date(traineeTaskData.batchTask.dueDate).toLocaleString()}
                 </Text>
               </View>
-  
+
               <Card
                 title="Task Assessment"
                 variant="info"

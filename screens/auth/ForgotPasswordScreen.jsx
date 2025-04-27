@@ -54,11 +54,12 @@ const ForgotPasswordScreen = ({ navigation }) => {
           clearInterval(timer);
           setShowCountdown(false);
         } else {
+          const hours = Math.floor(timeLeft / (1000 * 60 * 60));
           const minutes = Math.floor(
             (timeLeft % (1000 * 60 * 60)) / (1000 * 60)
           );
           const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-          setCountdown({ minutes, seconds });
+          setCountdown({ hours, minutes, seconds });
         }
       }, 1000);
     }
@@ -127,7 +128,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
         }
       } catch (err) {
         Alert.alert(
-          "Error",
+          "Errorss",
           err.message ||
             "There was a problem sending the recovery email. Please try again."
         );
@@ -197,7 +198,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
                   Password reset link sent! It will expire in:
                 </Text>
                 <Text className="text-center text-primary-800 text-xl font-bold mt-2">
-                  {formatTime(countdown.minutes)}:
+                  {formatTime(countdown.hours)}:{formatTime(countdown.minutes)}:
                   {formatTime(countdown.seconds)}
                 </Text>
                 <Text

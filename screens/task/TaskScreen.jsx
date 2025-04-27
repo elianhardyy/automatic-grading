@@ -458,7 +458,7 @@ const TaskScreen = ({ navigation }) => {
   const renderEmptyList = () => (
     <View style={styles.emptyListContainer}>
       {/* --- PERBAIKAN ICON EMPTY LIST --- */}
-      <MaterialIcons name="assignment_late" size={56} color="#D1D5DB" />
+      <MaterialIcons name="assignment-late" size={56} color="#D1D5DB" />
       {/* ------------------------------- */}
       <Text style={[fonts.ecTextSubtitle1, styles.emptyListTitle]}>
         No Tasks Found
