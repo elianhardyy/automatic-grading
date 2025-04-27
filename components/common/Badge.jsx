@@ -1,20 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { fonts } from "../../utils/font"; // Import the font styles
+import { fonts } from "../../utils/font";
 
-/**
- * Badge Component for React Native
- * @param {object} props - Component props
- * @param {string} props.text - Text to display in the badge
- * @param {string} props.size - Size of the badge ('small', 'medium', 'large')
- * @param {string} props.color - Color theme of the badge ('primary', 'secondary', 'tertiary', 'info', 'success', 'warning', 'alert', 'neutral', 'goingdark')
- * @param {string} props.variant - Badge variant ('filled', 'outlined')
- * @param {object} props.style - Additional style for the badge container
- * @param {object} props.textStyle - Additional style for the badge text
- * @param {string} props.customColor - Custom background color (overrides color prop)
- * @param {string} props.customTextColor - Custom text color
- * @returns {JSX.Element}
- */
 const Badge = ({
   text,
   size = "medium",
@@ -25,10 +12,8 @@ const Badge = ({
   customColor,
   customTextColor,
 }) => {
-  // Get sizing styles
   const sizeStyles = getBadgeSize(size);
 
-  // Get color styles
   const colorStyles = getBadgeColors(
     color,
     variant,
@@ -55,9 +40,6 @@ const Badge = ({
   );
 };
 
-/**
- * Get badge size styles based on size prop
- */
 const getBadgeSize = (size) => {
   switch (size) {
     case "small":
@@ -97,11 +79,7 @@ const getBadgeSize = (size) => {
   }
 };
 
-/**
- * Get badge color styles based on color prop and variant
- */
 const getBadgeColors = (color, variant, customColor, customTextColor) => {
-  // Color palette from tailwind.config.js
   const colors = {
     primary: {
       bg: "#233D90",

@@ -9,6 +9,7 @@ import ChangePasswordScreen from "../screens/password/ChangePasswordScreen";
 import TraineeDetailScreen from "../screens/trainee/TraineeDetailScreen";
 import AssessmentTaskScreen from "../screens/assessment/AssessmentTaskScreen";
 import DetailAssessmentTaskScreen from "../screens/assessment/DetailAssessmentTaskScreen";
+import GradingResultScreen from "../screens/assessment/GradingResultScreen";
 const Stack = createStackNavigator();
 const TrainerNavigator = () => {
   return (
@@ -23,8 +24,14 @@ const TrainerNavigator = () => {
       <Stack.Screen name="CreateTaskScreen" component={CreateTaskScreen} />
       <Stack.Screen name="DetailTaskScreen" component={DetailTaskScreen} />
       <Stack.Screen name="ExistingTaskScreen" component={ExistingTaskScreen} />
-      <Stack.Screen name="AssessmentTaskScreen" component={AssessmentTaskScreen} />
-      <Stack.Screen name="DetailAssessmentTaskScreen" component={DetailAssessmentTaskScreen} />
+      <Stack.Screen
+        name="AssessmentTaskScreen"
+        component={AssessmentTaskScreen}
+      />
+      <Stack.Screen
+        name="DetailAssessmentTaskScreen"
+        component={DetailAssessmentTaskScreen}
+      />
       <Stack.Screen
         name="ChangePasswordScreen"
         component={ChangePasswordScreen}
@@ -32,6 +39,11 @@ const TrainerNavigator = () => {
       <Stack.Screen
         name="TraineeDetailScreen"
         component={TraineeDetailScreen}
+        options={{ title: "Trainee Profile" }}
+      />
+      <Stack.Screen
+        name="GradingResultScreen"
+        component={GradingResultScreen}
         options={{ title: "Trainee Profile" }}
       />
     </Stack.Navigator>
