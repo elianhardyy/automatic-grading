@@ -230,7 +230,7 @@ const ProfileScreen = ({ navigation }) => {
   }
 
   const renderProfileImage = () => {
-    const pictureUrl = profile?.profilePicture || profile?.picture;
+    const pictureUrl = profile?.picture || profile?.profilePicture;
     if (loadingPicture) {
       return <Skeleton width={80} height={80} radius={40} />;
     }
