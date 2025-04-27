@@ -12,13 +12,13 @@ import {
   RefreshControl, // Added for pull-to-refresh
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { logoutUser } from "../../redux/slice/auth";
-import { profileTrainer } from "../../redux/slice/profile"; // Import profile action
+import { logoutUser } from "../../services/slice/authService";
+import { profileService } from "../../services/slice/profileService"; // Import profile action
 import { useRoleCheck } from "../../hooks/useRoleCheck";
 import { useQuery, useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
-import { fetchTask } from "../../query/task";
-import { fetchAllBatchByMe } from "../../query/batch";
-import { fetchAllTrainees } from "../../query/trainee";
+import { taskService } from "../../services/query/taskService";
+import { batchService } from "../../services/query/batchService";
+import { traineeService } from "../../services/query/traineeService";
 import {
   Ionicons,
   MaterialCommunityIcons,
@@ -58,7 +58,7 @@ const Skeleton = ({ width = "100%", height = 20, radius = 6, style }) => (
 );
 
 const HomeScreen = ({ navigation }) => {
-  useRoleCheck("[ROLE_TRAINER]", "LoginScreen"); // Ensure correct role string format if needed
+  useRoleCheck("[ROLE_TRAINER]", "LoginScreen");
   const dispatch = useDispatch();
   const queryClient = useQueryClient(); // Get query client instance
   const { user } = useSelector((state) => state.auth);
@@ -94,7 +94,7 @@ const HomeScreen = ({ navigation }) => {
     isError: isBatchError,
   } = useQuery({
     queryKey: ["batches", filter], // Include filter in queryKey
-    queryFn: () => fetchAllBatchByMe(filter),
+    queryFn: () => batchService.fetchAllBatchByMe(filter),
     staleTime: 5 * 60 * 1000, // Keep data fresh for 5 mins
   });
 
@@ -107,7 +107,7 @@ const HomeScreen = ({ navigation }) => {
     isError: isTasksError,
   } = useQuery({
     queryKey: ["tasks", filter], // Include filter in queryKey
-    queryFn: () => fetchTask(filter),
+    queryFn: () => taskService.fetchTask(filter),
     staleTime: 1 * 60 * 1000, // Tasks might change more often
   });
 
@@ -121,13 +121,17 @@ const HomeScreen = ({ navigation }) => {
   } = useQuery({
     queryKey: ["trainees", { page: 1, size: 1, search: filter.search }], // Only need count, adjust filter
     queryFn: () =>
-      fetchAllTrainees({ page: 1, size: 1, search: filter.search }), // Fetch minimal data
+      traineeService.fetchAllTrainees({
+        page: 1,
+        size: 1,
+        search: filter.search,
+      }), // Fetch minimal data
     staleTime: 10 * 60 * 1000, // Trainee count might not change often
   });
 
   // --- Profile Fetching ---
   useEffect(() => {
-    dispatch(profileTrainer());
+    dispatch(profileService.profileTrainer());
   }, [dispatch]);
 
   // --- Derived Data & Memoization ---
@@ -275,7 +279,7 @@ const HomeScreen = ({ navigation }) => {
       refetchBatches(),
       refetchTasks(),
       refetchTrainees(),
-      dispatch(profileTrainer()), // Refetch profile too
+      dispatch(profileService.profileTrainer()), // Refetch profile too
     ]);
   }, [refetchBatches, refetchTasks, refetchTrainees, dispatch]);
 
