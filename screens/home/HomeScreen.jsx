@@ -12,7 +12,7 @@ import {
   RefreshControl, // Added for pull-to-refresh
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { logoutUser } from "../../services/slice/authService";
+import { authService } from "../../services/slice/authService";
 import { profileService } from "../../services/slice/profileService"; // Import profile action
 import { useRoleCheck } from "../../hooks/useRoleCheck";
 import { useQuery, useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
@@ -291,7 +291,7 @@ const HomeScreen = ({ navigation }) => {
 
   // --- Handlers ---
   const handleLogout = () => {
-    dispatch(logoutUser());
+    dispatch(authService.logoutUser());
     // Optionally clear query cache on logout
     // queryClient.clear();
   };
