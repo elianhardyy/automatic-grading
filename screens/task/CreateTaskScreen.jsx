@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fonts } from "../../utils/font";
 import CreateTaskForm from "../../components/tasks/CreateTaskForm";
 import Select from "../../components/common/Select";
-import { fetchAllBatchByMe } from "../../query/batch";
+import { batchService } from "../../services/query/batchService";
 import Button from "../../components/common/Button";
 import Alert from "../../components/common/Alert";
 
@@ -30,7 +30,7 @@ const CreateTaskScreen = ({ navigation }) => {
   } = useQuery({
     queryKey: ["batches"],
     queryFn: () =>
-      fetchAllBatchByMe({
+      batchService.fetchAllBatchByMe({
         page: 1,
         size: 100,
         sortBy: "name",

@@ -10,13 +10,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import {
-  getAllTaskCategory,
-  updateTaskWithCriteria,
-  createTaskCriteria,
-  deleteTaskCriteria,
-  updateTaskWithCreatedAndUpdateCriteria,
-} from "../../query/task";
+import { taskService } from "../../services/query/taskService";
 import { fonts } from "../../utils/font";
 import Button from "../common/Button";
 import Input from "../common/Input";
@@ -69,7 +63,7 @@ const EditTaskForm = ({ taskData, navigation, onCancel, onSuccess }) => {
 
   const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
     queryKey: ["taskCategories"],
-    queryFn: getAllTaskCategory,
+    queryFn: taskService.getAllTaskCategory,
     onError: (error) => {
       console.error("Error fetching task categories:", error);
     },
@@ -82,14 +76,14 @@ const EditTaskForm = ({ taskData, navigation, onCancel, onSuccess }) => {
     })) || [];
 
   const createCriteriaMutation = useMutation({
-    mutationFn: createTaskCriteria,
+    mutationFn: taskService.createTaskCriteria,
     onError: (err) => {
       console.error("Error creating new criteria:", err);
     },
   });
 
   const deleteTaskCriteriaMutation = useMutation({
-    mutationFn: deleteTaskCriteria,
+    mutationFn: taskService.deleteTaskCriteria,
     onError: (err) => {
       console.error("Error deleting criteria:", err);
     },
@@ -97,7 +91,7 @@ const EditTaskForm = ({ taskData, navigation, onCancel, onSuccess }) => {
 
   const updateTaskMutation = useMutation({
     mutationFn: (payload) =>
-      updateTaskWithCriteria(
+      taskService.updateTaskWithCriteria(
         taskData.id,
         payload.taskData,
         payload.criteriaList,
@@ -115,7 +109,7 @@ const EditTaskForm = ({ taskData, navigation, onCancel, onSuccess }) => {
 
   const updateTaskWithCreateAndUpdateCriteriaMutation = useMutation({
     mutationFn: (payload) =>
-      updateTaskWithCreatedAndUpdateCriteria(
+      taskService.updateTaskWithCreatedAndUpdateCriteria(
         taskData.id,
         payload.taskData,
         payload.criteriaList,

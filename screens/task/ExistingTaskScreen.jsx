@@ -12,7 +12,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { fonts } from "../../utils/font";
-import { fetchAllTask } from "../../query/task"; // You'll need to create this query function
+import { taskService } from "../../services/query/taskService"; // You'll need to create this query function
 import Alert from "../../components/common/Alert";
 import ExistingTaskForm from "../../components/tasks/ExistingTaskForm";
 import { MotiView } from "moti";
@@ -57,7 +57,7 @@ const ExistingTaskScreen = ({ route, navigation }) => {
   } = useQuery({
     queryKey: ["tasks"],
     queryFn: () =>
-      fetchAllTask({
+      taskService.fetchAllTask({
         page: 1,
         size: 100,
         sortBy: "name",

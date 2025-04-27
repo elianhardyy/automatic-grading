@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { createTaskWithCriteria, getAllTaskCategory } from "../../query/task";
+import { taskService } from "../../services/query/taskService";
 import { fonts } from "../../utils/font";
 import Button from "../common/Button";
 import Input from "../common/Input";
@@ -43,7 +43,7 @@ const CreateTaskForm = ({ navigation, batchId, goBack }) => {
 
   const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
     queryKey: ["taskCategories"],
-    queryFn: getAllTaskCategory,
+    queryFn: taskService.getAllTaskCategory,
     onError: (error) => {
       console.error("Error fetching task categories:", error);
     },
@@ -57,7 +57,7 @@ const CreateTaskForm = ({ navigation, batchId, goBack }) => {
 
   const { mutate, isLoading, isError, error } = useMutation({
     mutationFn: (payload) =>
-      createTaskWithCriteria(
+      taskService.createTaskWithCriteria(
         {
           name: payload.name,
           taskCategoryId: payload.taskCategoryId,
@@ -239,7 +239,7 @@ const CreateTaskForm = ({ navigation, batchId, goBack }) => {
   const handleAddCriteria = () => {
     setCriteria([
       ...criteria,
-      { id: criteria.length + 1, description: "", weight: 1 },
+      { id: criteria.length + 1, description: "", weight: 100 },
     ]);
   };
 

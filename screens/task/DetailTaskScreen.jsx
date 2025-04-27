@@ -11,11 +11,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  getTaskById,
-  deleteTaskWithCriteria,
-  deleteTaskCriteria,
-} from "../../query/task";
+import { taskService } from "../../services/query/taskService";
 import { fonts } from "../../utils/font";
 import Button from "../../components/common/Button";
 import Card from "../../components/common/Card";
@@ -64,14 +60,14 @@ const DetailTaskScreen = ({ route, navigation }) => {
     isRefetching,
   } = useQuery({
     queryKey: ["task", taskId],
-    queryFn: () => getTaskById(taskId),
+    queryFn: () => taskService.getTaskById(taskId),
     enabled: !!taskId,
   });
 
   const task = taskData?.data;
 
   const deleteTaskMutation = useMutation({
-    mutationFn: () => deleteTaskWithCriteria(taskId),
+    mutationFn: () => taskService.deleteTaskWithCriteria(taskId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.removeQueries({ queryKey: ["task", taskId] });
@@ -83,7 +79,7 @@ const DetailTaskScreen = ({ route, navigation }) => {
   });
 
   const deleteCriteriaMutation = useMutation({
-    mutationFn: (criteriaId) => deleteTaskCriteria(criteriaId),
+    mutationFn: (criteriaId) => taskService.deleteTaskCriteria(criteriaId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
       setSelectedCriteriaId(null);
