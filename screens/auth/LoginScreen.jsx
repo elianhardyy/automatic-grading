@@ -6,14 +6,8 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  TouchableOpacity,
-  Alert,
 } from "react-native";
-import Input from "../../components/common/Input";
-import Button from "../../components/common/Button";
 import { fonts } from "../../utils/font";
-import { useDispatch, useSelector } from "react-redux";
-import { loginUser, resetAuthError } from "../../redux/slice/auth";
 import LoginForm from "../../components/auth/LoginForm";
 
 const LoginScreen = ({ navigation }) => {

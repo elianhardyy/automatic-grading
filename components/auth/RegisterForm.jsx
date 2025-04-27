@@ -3,10 +3,10 @@ import { useDispatch, useSelector } from "react-redux";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import {
-  registerUser,
+  authService,
   resetAuthError,
   resetRegistrationStatus,
-} from "../../redux/slice/auth";
+} from "../../services/slice/authService";
 import { TouchableOpacity, Alert, View, Text } from "react-native";
 
 const RegisterForm = ({ navigation }) => {
@@ -40,7 +40,6 @@ const RegisterForm = ({ navigation }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    // Validate the form whenever any field changes
     validateField();
 
     setIsFormValid(
@@ -185,7 +184,7 @@ const RegisterForm = ({ navigation }) => {
         role,
       };
       console.log("Registering user:", userData);
-      dispatch(registerUser(userData));
+      dispatch(authService.registerUser(userData));
     }
   };
 

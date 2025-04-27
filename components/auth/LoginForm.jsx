@@ -11,9 +11,8 @@ import {
 } from "react-native";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
-import { fonts } from "../../utils/font";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser, resetAuthError } from "../../redux/slice/auth";
+import { authService, resetAuthError } from "../../services/slice/authService";
 import InputGroup from "../common/InputGroup";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -128,7 +127,7 @@ const LoginForm = ({ navigation }) => {
       };
 
       try {
-        await dispatch(loginUser(credentials)).unwrap();
+        await dispatch(authService.loginUser(credentials)).unwrap();
       } catch (err) {
       } finally {
         setIsLoading(false);
