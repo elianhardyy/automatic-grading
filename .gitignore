@@ -4,6 +4,7 @@
 ./screens/task/*
 ./screens/trainee/*
 .env
+*.patch
 # dependencies
 node_modules/
 .npmrc
