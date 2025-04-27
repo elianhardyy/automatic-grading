@@ -2,7 +2,11 @@ import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, Alert, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
-import { changePassword, resetProfileError } from "../../redux/slice/profile";
+import {
+  changePassword,
+  profileService,
+  resetProfileError,
+} from "../../services/slice/profileService";
 
 // Components
 import Input from "../../components/common/Input";
@@ -62,7 +66,7 @@ const ChangePasswordScreen = ({ navigation }) => {
       setIsSubmitting(true);
 
       try {
-        await dispatch(changePassword(passwordForm)).unwrap();
+        await dispatch(profileService.changePassword(passwordForm)).unwrap();
         Alert.alert("Success", "Password changed successfully", [
           { text: "OK", onPress: () => navigation.goBack() },
         ]);

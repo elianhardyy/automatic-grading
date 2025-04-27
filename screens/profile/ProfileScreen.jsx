@@ -16,8 +16,8 @@ import { useDispatch, useSelector } from "react-redux";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import { fonts } from "../../utils/font";
-import { profileTrainer } from "../../redux/slice/profile";
-import { logoutUser } from "../../redux/slice/auth";
+import { profileService } from "../../services/slice/profileService";
+import { authService } from "../../services/slice/authService";
 import { MotiView } from "moti";
 import { Easing } from "react-native-reanimated";
 import { API_URL } from "../../constant/uri";
@@ -144,13 +144,15 @@ const ProfileScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (!profile && !loading) {
-      dispatch(profileTrainer());
+      dispatch(profileService.profileTrainer());
     }
   }, [dispatch, profile, loading]);
 
   const onRefresh = React.useCallback(() => {
     setIsRefreshing(true);
-    dispatch(profileTrainer()).finally(() => setIsRefreshing(false));
+    dispatch(profileService.profileTrainer()).finally(() =>
+      setIsRefreshing(false)
+    );
   }, [dispatch]);
 
   const handleLogout = () => {
@@ -162,7 +164,7 @@ const ProfileScreen = ({ navigation }) => {
         {
           text: "Logout",
           onPress: () => {
-            dispatch(logoutUser());
+            dispatch(authService.logoutUser());
           },
           style: "destructive",
         },
@@ -207,7 +209,7 @@ const ProfileScreen = ({ navigation }) => {
         </Text>
         <Button
           title="Retry"
-          onPress={() => dispatch(profileTrainer())}
+          onPress={() => dispatch(profileService.profileTrainer())}
           variant="primary"
           icon={<MaterialIcons name="refresh" size={18} color="white" />}
           iconPosition="left"
