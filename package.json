@@ -23,6 +23,7 @@
     "auto-grade": "file:",
     "axios": "^1.8.4",
     "date-fns": "^4.1.0",
+    "dotenv": "^16.5.0",
     "expo": "~52.0.46",
     "expo-file-system": "~18.0.12",
     "expo-font": "~13.0.4",
@@ -44,12 +45,14 @@
     "react-native-web": "~0.19.13",
     "react-redux": "^9.2.0",
     "redux": "^5.0.1",
-    "redux-persist": "^6.0.0"
+    "redux-persist": "^6.0.0",
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3",
+    "react-native-dotenv": "^3.4.11",
     "tailwindcss": "^3.4.17"
   },
   "private": true

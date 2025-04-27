@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import "./global.css";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { fonts } from "./utils/font";
 import Main from "./Main";
 import { NavigationContainer } from "@react-navigation/native";
 import { Provider } from "react-redux";

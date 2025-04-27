@@ -2,14 +2,14 @@ import { useDispatch, useSelector } from "react-redux";
 import AuthNavigator from "./navigation/AuthNavigator";
 import AppNavigator from "./navigation/AppNavigator";
 import { useEffect } from "react";
-import { checkAuthStatus } from "./redux/slice/auth";
 import { ActivityIndicator, View } from "react-native";
+import { authService } from "./services/slice/authService";
 
 export default function Main() {
   const { isAuthenticated } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   useEffect(() => {
-    dispatch(checkAuthStatus());
+    dispatch(authService.checkAuthStatus());
   }, [dispatch]);
 
   // if (loading) {
