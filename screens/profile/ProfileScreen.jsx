@@ -263,6 +263,58 @@ const ProfileScreen = ({ navigation }) => {
     );
   }
 
+  const renderProfileImage = () => {
+    const pictureUrl = profile?.picture || profile?.profilePicture;
+    if (loadingPicture) {
+      return <Skeleton width={80} height={80} radius={40} />;
+    }
+    if (pictureUrl) {
+      return (
+        <Image
+          source={{ uri: `${API_URL}/profile/picture/${pictureUrl}` }}
+          className="w-20 h-20 rounded-full border-4 border-white bg-neutral-200" // Add white border for contrast
+          resizeMode="cover"
+        />
+      );
+    }
+    const initials = profile?.name
+      ? profile.name.charAt(0).toUpperCase()
+      : profile?.username
+      ? profile.username.charAt(0).toUpperCase()
+      : "?";
+    return (
+      <View className="w-20 h-20 rounded-full bg-primary-400 justify-center items-center border-4 border-white">
+        <Text
+          className="text-white text-4xl font-bold"
+          style={{ includeFontPadding: false }}
+        >
+          {initials}
+        </Text>
+      </View>
+    );
+  };
+
+  const InfoRow = ({ label, value, iconName }) => (
+    <View className="mb-4">
+      <View className="flex-row items-center mb-1">
+        {iconName && (
+          <MaterialIcons
+            name={iconName}
+            size={14}
+            color="#757575"
+            style={{ marginRight: 4 }}
+          />
+        )}
+        <Text style={fonts.ecTextBody3} className="text-neutral-500">
+          {label}
+        </Text>
+      </View>
+      <Text style={fonts.ecTextBody2} className="text-neutral-800 ml-1">
+        {value || "-"}
+      </Text>
+    </View>
+  );
+
   return (
     <ScrollView className="flex-1 bg-neutral-100 mt-5">
       <View className="bg-primary-500 p-6 pb-20">
