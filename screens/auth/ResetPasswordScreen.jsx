@@ -13,7 +13,7 @@ import Button from "../../components/common/Button";
 import { fonts } from "../../utils/font";
 import InputGroup from "../../components/common/InputGroup";
 import { MaterialIcons } from "@expo/vector-icons";
-import { resetPassword } from "../../redux/slices/auth";
+import { authService } from "../../services/slice/authService";
 
 const ResetPasswordScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
@@ -117,7 +117,7 @@ const ResetPasswordScreen = ({ navigation, route }) => {
     if (validate()) {
       try {
         await dispatch(
-          resetPassword({
+          authService.resetPassword({
             token,
             password: formData.password,
           })

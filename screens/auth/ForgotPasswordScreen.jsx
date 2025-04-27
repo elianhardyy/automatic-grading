@@ -14,7 +14,7 @@ import Button from "../../components/common/Button";
 import { fonts } from "../../utils/font";
 import InputGroup from "../../components/common/InputGroup";
 import { MaterialIcons } from "@expo/vector-icons";
-import { forgotPassword } from "../../redux/slice/auth";
+import { authService } from "../../services/slice/authService";
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -114,7 +114,9 @@ const ForgotPasswordScreen = ({ navigation }) => {
   const handleSubmit = async () => {
     if (validate()) {
       try {
-        const result = await dispatch(forgotPassword({ email })).unwrap();
+        const result = await dispatch(
+          authService.forgotPassword({ email })
+        ).unwrap();
 
         if (result && result.data) {
           setResetTime(result.data.resetTime);
@@ -203,7 +205,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
                 </Text>
                 <Text
                   className="text-center text-neutral-600 mt-2"
-                  style={fonts.ecTextBody4}
+                  style={fonts.ecTextBody3M}
                 >
                   Check your email and follow the instructions
                 </Text>
