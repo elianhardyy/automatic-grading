@@ -1,7 +1,7 @@
 import { traineeTaskAPI } from "../../api/traineeTask";
 
 export const traineeTaskService = {
-  fetchAllTraineeTaskByBatchTaskId: async (batchTaskId, filter) => {
+  fetchAllTraineeTaskByBatchTaskId: async (batchTaskId, filter = {}) => {
     try {
       const response = await traineeTaskAPI.getAllTraineeTasksByBatchTaskId(
         batchTaskId,

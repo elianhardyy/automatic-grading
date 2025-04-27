@@ -5,7 +5,8 @@ export const buildQueryParams = (filter) => {
   if (filter.sortBy) params.append("sortBy", filter.sortBy);
   if (filter.direction) params.append("direction", filter.direction);
   if (filter.name) params.append("name", filter.name);
-  if (filter.taskCategory) params.append("taskCategory", filter.taskCategory);
+  if (filter.taskCategory)
+    params.append("taskCategoryName", filter.taskCategory);
   if (filter.batchName) params.append("batchName", filter.batchName);
   if (filter.taskCriteriaDescription)
     params.append("taskCriteriaDescription", filter.taskCriteriaDescription);

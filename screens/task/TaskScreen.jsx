@@ -26,6 +26,7 @@ import TaskList from "../../components/tasks/TaskList";
 
 import { useDispatch } from "react-redux";
 import { setOngoing } from "../../services/slice/ongoing";
+import { traineeTaskService } from "../../services/query/traineeTaskService";
 
 const SkeletonFilter = () => (
   <MotiView
@@ -43,6 +44,7 @@ const SkeletonFilter = () => (
 
 const transformTaskData = (task) => {
   const batchTask = task.batchTasks?.[0] || {};
+  // console.log(task);
   return {
     id: task.id,
     batchTaskId: batchTask.id,
@@ -73,16 +75,23 @@ const TaskScreen = ({ navigation }) => {
   const [sortBy, setSortBy] = useState("name");
   const [pageSize] = useState(10);
 
+  // Include selectedStatus in the query filter
   const queryFilter = useMemo(
     () => ({
       size: pageSize,
       sortBy: sortBy,
       direction:
         sortBy === "assignedDate" || sortBy === "dueDate" ? "desc" : "asc",
-      batchId: selectedBatch || undefined,
-      categoryId: selectedCategory || undefined,
+      batchName: selectedBatch || undefined,
+      taskCategory: selectedCategory || undefined, // Ganti dari categoryId menjadi taskCategory
+      status:
+        selectedStatus === "assessed"
+          ? "completed"
+          : selectedStatus === "not_assessed"
+          ? "incomplete"
+          : undefined,
     }),
-    [pageSize, sortBy, selectedBatch, selectedCategory]
+    [pageSize, sortBy, selectedBatch, selectedCategory, selectedStatus]
   );
 
   const {
@@ -145,7 +154,7 @@ const TaskScreen = ({ navigation }) => {
     if (!Array.isArray(batches)) return defaultOption;
     const batchOpts = batches.map((batch) => ({
       label: batch.name,
-      value: batch.id,
+      value: batch.name,
     }));
     return [...defaultOption, ...batchOpts];
   }, [batchesData]);
@@ -155,7 +164,7 @@ const TaskScreen = ({ navigation }) => {
     if (!Array.isArray(categories)) return defaultOption;
     const categoryOpts = categories.map((category) => ({
       label: category.name,
-      value: category.id,
+      value: category.name,
     }));
     return [...defaultOption, ...categoryOpts];
   }, [categoriesData]);
@@ -204,19 +213,9 @@ const TaskScreen = ({ navigation }) => {
       });
     }
 
-    if (selectedStatus) {
-      tasksToFilter = tasksToFilter.filter((task) => {
-        const isComplete =
-          task.totalTrainees > 0 &&
-          task.assessedTrainees === task.totalTrainees;
-        if (selectedStatus === "assessed") return isComplete;
-        if (selectedStatus === "not_assessed") return !isComplete;
-        return true;
-      });
-    }
-
+    // Don't double-filter for status since we're sending it to the API
     return tasksToFilter;
-  }, [transformedTasks, searchQuery, selectedTab, selectedStatus]);
+  }, [transformedTasks, searchQuery, selectedTab]);
 
   const onlyOnGoingTasks = useMemo(
     () => filteredTasks.filter(isTaskOngoing),
@@ -232,7 +231,13 @@ const TaskScreen = ({ navigation }) => {
   const handleAssessTask = (taskId, batchId, item, batchTaskId) => {
     navigation.navigate("AssessmentTaskScreen", { batchTaskId });
   };
-
+  // const traineeTaskBatch =
+  //   traineeTaskService.fetchAllTraineeTaskByBatchTaskId();
+  // const { data: traineeTaskAssessed } = useQuery({
+  //   queryKey: ["traineeTaskAssessed"],
+  //   queryFn: async () =>
+  //     traineeTaskService.fetchAllTraineeTaskByBatchTaskId(batchTaskId),
+  // });
   const handleResetFilters = () => {
     setSelectedBatch("");
     setSelectedCategory("");
@@ -240,7 +245,10 @@ const TaskScreen = ({ navigation }) => {
     setSortBy("name");
     setSearchQuery("");
   };
+
   const handleApplyFilters = () => {
+    // Trigger refetch when applying filters
+    refetchTasks();
     setIsFilterVisible(false);
   };
 
@@ -278,7 +286,11 @@ const TaskScreen = ({ navigation }) => {
         <InputGroup
           placeholder="Search task name..."
           value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={(text) => {
+            setSearchQuery(text);
+            // Allow a delay before filtering to avoid excessive API calls
+            // if your API supports searching, you could include it in queryFilter
+          }}
           variant="rounded"
           prefixIcon="search"
           iconPosition="left"
