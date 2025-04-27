@@ -14,8 +14,8 @@ import Button from "../../components/common/Button";
 import Card from "../../components/common/Card";
 import { fonts } from "../../utils/font";
 import TraineeDetailScreen from "./TraineeDetailScreen";
-import { fetchAllBatchByMe } from "../../query/batch";
-import { fetchAllTrainees } from "../../query/trainee";
+import { batchService } from "../../services/query/batchService";
+import { traineeService } from "../../services/query/traineeService";
 
 const TraineeScreen = () => {
   const [selectedBatch, setSelectedBatch] = useState(null);
@@ -30,7 +30,7 @@ const TraineeScreen = () => {
   } = useQuery({
     queryKey: ["batches"],
     queryFn: () =>
-      fetchAllBatchByMe({
+      batchService.fetchAllBatchByMe({
         page: 1,
         size: 10,
         sortBy: "name",
@@ -45,7 +45,12 @@ const TraineeScreen = () => {
   } = useQuery({
     queryKey: ["trainees", selectedBatch],
     queryFn: () =>
-      fetchAllTrainees({ page: 1, size: 10, sortBy: "name", direction: "asc" }),
+      traineeService.fetchAllTrainees({
+        page: 1,
+        size: 10,
+        sortBy: "name",
+        direction: "asc",
+      }),
     enabled: !!selectedBatch,
   });
 

@@ -5,12 +5,12 @@ import Button from "../../components/common/Button";
 import Card from "../../components/common/Card";
 import { fonts } from "../../utils/font";
 import { MaterialIcons } from "@expo/vector-icons";
-import { fetchTraineeById } from "../../query/trainee";
+import { traineeService } from "../../services/query/traineeService";
 
 const TraineeDetailScreen = ({ trainee, onBack }) => {
   const { data: traineeDetails, isLoading } = useQuery({
     queryKey: ["trainee", trainee.id],
-    queryFn: () => fetchTraineeById(trainee.id),
+    queryFn: () => traineeService.fetchTraineeById(trainee.id),
     initialData: { data: trainee },
   });
 
