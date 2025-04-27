@@ -43,7 +43,7 @@ const EditProfileScreen = ({ navigation }) => {
         name: `profile-picture.${fileType}`,
         type: `image/${fileType}`,
       });
-      await dispatch(updateProfilePicture(formData)).unwrap();
+      await dispatch(profileService.updateProfilePicture(formData)).unwrap();
     } catch (error) {
       Alert.alert(
         "Error",
