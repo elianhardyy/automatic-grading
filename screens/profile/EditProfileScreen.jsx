@@ -16,92 +16,20 @@ import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { fonts } from "../../utils/font";
-import {
-  profileTrainer,
-  setProfilePicture,
-  updateProfile,
-  updateProfilePicture,
-} from "../../redux/slice/profile";
+import { profileService } from "../../services/slice/profileService";
 import InputGroup from "../../components/common/InputGroup";
-import * as FileSystem from "expo-file-system";
 import { API_URL } from "../../constant/uri";
+import EditProfileForm from "../../components/profile/EditProfileForm";
 
 const EditProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { profile, loading, error } = useSelector((state) => state.profile);
-  const [errors, setErrors] = useState({});
-  const [name, setName] = useState(profile?.name);
-  const [address, setAddress] = useState(profile?.address || "");
-  const [phoneNumber, setPhoneNumber] = useState(profile?.phoneNumber || "");
   const [image, setImage] = useState(profile?.profilePicture || null);
   const [imageUploading, setImageUploading] = useState(false);
-  const [touchedFields, setTouchedFields] = useState({
-    name: false,
-    address: false,
-    phoneNumber: false,
-  });
 
   useEffect(() => {
-    dispatch(profileTrainer());
+    dispatch(profileService.profileTrainer());
   }, [dispatch]);
-
-  useEffect(() => {
-    validateField();
-  }, [name, address, phoneNumber]);
-
-  const validateField = (fieldName = null) => {
-    const newErrors = { ...errors };
-    if (fieldName === "name" || (fieldName === null && touchedFields.name)) {
-      if (!name.trim()) {
-        newErrors.name = "Name is required";
-      } else {
-        delete newErrors.name;
-      }
-    }
-    if (
-      fieldName === "address" ||
-      (fieldName === null && touchedFields.address)
-    ) {
-      if (!address.trim()) {
-        newErrors.address = "Address is required";
-      } else {
-        delete newErrors.address;
-      }
-    }
-    if (
-      fieldName === "phoneNumber" ||
-      (fieldName === null && touchedFields.phoneNumber)
-    ) {
-      if (!phoneNumber.trim()) {
-        newErrors.phoneNumber = "Phone number is required";
-      } else if (!/^\d+$/.test(phoneNumber)) {
-        newErrors.phoneNumber = "Phone number must be numeric";
-      } else if (!/^\d{10,15}$/.test(phoneNumber)) {
-        newErrors.phoneNumber = "Phone number must be between 10 to 15 digits";
-      } else {
-        delete newErrors.phoneNumber;
-      }
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleFieldBlur = (fieldName) => {
-    setTouchedFields({
-      ...touchedFields,
-      [fieldName]: true,
-    });
-    validateField(fieldName);
-  };
-
-  const validate = () => {
-    setTouchedFields({
-      name: true,
-      address: true,
-      phoneNumber: true,
-    });
-    return validateField();
-  };
 
   const handleUpdateProfilePicture = async (imageUri) => {
     try {
@@ -110,18 +38,12 @@ const EditProfileScreen = ({ navigation }) => {
       const formData = new FormData();
       const uriParts = imageUri.split(".");
       const fileType = uriParts[uriParts.length - 1];
-      console.log("File type:", fileType);
-      console.log("Image URI:", imageUri);
       formData.append("image", {
         uri: imageUri,
         name: `profile-picture.${fileType}`,
         type: `image/${fileType}`,
       });
-      const splitImageUri = imageUri.split("/").pop();
       await dispatch(updateProfilePicture(formData)).unwrap();
-      dispatch(setProfilePicture(splitImageUri));
-      //setImage(imageUri);
-      //Alert.alert("Success", "Profile picture updated successfully");
     } catch (error) {
       Alert.alert(
         "Error",
@@ -178,21 +100,6 @@ const EditProfileScreen = ({ navigation }) => {
     }
   };
 
-  const handleUpdateProfile = () => {
-    if (validate()) {
-      const profileData = {
-        name,
-        address,
-        phoneNumber,
-      };
-      console.log(profileData);
-      //console.log(image);
-      dispatch(setProfilePicture(image));
-      dispatch(updateProfile(profileData));
-      navigation.goBack();
-    }
-  };
-
   const showImageOptions = () => {
     Alert.alert("Change Profile Photo", "Choose an option", [
       { text: "Take Photo", onPress: takePhoto },
@@ -230,7 +137,7 @@ const EditProfileScreen = ({ navigation }) => {
         </Text>
         <Button
           title="Coba Lagi"
-          onPress={() => dispatch(profileTrainer())}
+          onPress={() => dispatch(profileService.profileTrainer())}
           variant="primary"
           icon={<MaterialIcons name="refresh" size={18} color="white" />}
           iconPosition="left"
@@ -307,89 +214,13 @@ const EditProfileScreen = ({ navigation }) => {
         </Card>
       </View>
 
-      <View className="px-4 mb-4">
-        <Card
-          variant="neutral"
-          title="Personal Information"
-          icon={<MaterialIcons name="person" size={20} color="#233D90" />}
-          collapsible={false}
-          className="shadow-md"
-        >
-          <View className="mb-4">
-            <Text style={fonts.ecTextBody2} className="text-neutral-700 mb-1">
-              Name
-            </Text>
-            <InputGroup
-              placeholder="Name"
-              value={name}
-              onChangeText={setName}
-              variant="rounded"
-              onBlur={() => handleFieldBlur("name")}
-              error={touchedFields.name ? errors.name : undefined}
-              iconPosition="left"
-              prefixIcon="person"
-            />
-          </View>
-
-          <View className="mb-4">
-            <Text style={fonts.ecTextBody2} className="text-neutral-700 mb-1">
-              Address
-            </Text>
-            <InputGroup
-              placeholder="Address"
-              value={address}
-              onChangeText={setAddress}
-              variant="rounded"
-              onBlur={() => handleFieldBlur("address")}
-              error={touchedFields.address ? errors.address : undefined}
-              iconPosition="left"
-              prefixIcon="home"
-            />
-          </View>
-
-          <View className="mb-4">
-            <Text style={fonts.ecTextBody2} className="text-neutral-700 mb-1">
-              Phone Number
-            </Text>
-            <InputGroup
-              placeholder="Phone Number"
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              variant="rounded"
-              keyboardType="phone-pad"
-              onBlur={() => handleFieldBlur("phoneNumber")}
-              error={touchedFields.phoneNumber ? errors.phoneNumber : undefined}
-              iconPosition="left"
-              prefixIcon="phone"
-              isPhoneNumber={true}
-              maxLength={15}
-              minLength={10}
-            />
-          </View>
-        </Card>
-      </View>
-
-      <View className="px-4 mb-8">
-        <Button
-          title={loading ? "Loading..." : "Save Changes"}
-          onPress={handleUpdateProfile}
-          variant="primary"
-          disabled={loading || imageUploading}
-          icon={<MaterialIcons name="save" size={18} color="white" />}
-          iconPosition="left"
-          className="mb-3"
-        />
-
-        <Button
-          title="Cancel"
-          onPress={() => navigation.goBack()}
-          variant="neutral"
-          type="outlined"
-          disabled={imageUploading}
-          icon={<MaterialIcons name="close" size={18} color="#546881" />}
-          iconPosition="left"
-        />
-      </View>
+      <EditProfileForm
+        profile={profile}
+        loading={loading}
+        navigation={navigation}
+        image={image}
+        imageUploading={imageUploading}
+      />
     </ScrollView>
   );
 };
