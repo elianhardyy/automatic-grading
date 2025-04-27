@@ -1,10 +1,10 @@
 import { api } from ".";
+import { buildQueryParams } from "../utils/queryParam";
 
 export const batchAPI = {
-  getAllBatches: (page, limit) =>
-    api.get(`/batches?page=${page}&limit=${limit}`),
-  getAllBatchesByTrainer: (trainerId, page, limit) =>
-    api.get(`/batches/trainer/${trainerId}?page=${page}&limit=${limit}`),
+  getAllBatches: (filter) => api.get(`/batches${buildQueryParams(filter)}`),
+  getAllBatchesByTrainer: (trainerId, filter) =>
+    api.get(`/batches/trainer/${trainerId}${buildQueryParams(filter)}`),
   getBatchById: (batchId) => api.get(`/batches/${batchId}`),
   createBatch: (batchData) => api.post("/batches", batchData),
   updateBatch: (batchId, batchData) =>
@@ -12,8 +12,5 @@ export const batchAPI = {
   deleteBatch: (batchId) => api.delete(`/batches/${batchId}`),
   //batch me
   // batch/me?page=1&size=10&sortBy=name&direction=asc
-  getBatchByme: (filter) =>
-    api.get(
-      `/batch/me?page=${filter.page}&size=${filter.size}&sortBy=${filter.sortBy}&direction=${filter.direction}`
-    ),
+  getBatchByme: (filter) => api.get(`/batch/me${buildQueryParams(filter)}`),
 };
