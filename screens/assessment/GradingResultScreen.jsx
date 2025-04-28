@@ -169,17 +169,6 @@ const GradingResultScreen = ({ route, navigation }) => {
           icon={<MaterialIcons name="arrow-back" size={16} color="#6B7280" />}
           iconPosition="left"
         />
-        <Button
-          title="View Full Report"
-          color="primary"
-          type="base"
-          onPress={handleViewFullReport}
-          className="flex-1 ml-2"
-          icon={<MaterialIcons name="description" size={16} color="#FFFFFF" />}
-          iconPosition="right"
-          // Disable button if gradingData is incomplete for the report? (optional)
-          // disabled={!gradingData || !gradingData.codeEvaluation}
-        />
       </View>
     </View>
   );

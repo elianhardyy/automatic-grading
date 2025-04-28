@@ -60,14 +60,12 @@ const GradingAssessmentTaskModal = ({
     onSuccess: (response) => {
       console.log(response);
       queryClient.invalidateQueries({ queryKey: ["traineeTask"] });
-      setTimeout(() => {
-        navigation.navigate("GradingResultScreen", {
-          gradingData: response.data,
-        });
+      navigation.navigate("GradingResultScreen", {
+        gradingData: response.data,
+      });
 
-        // Close the modal
-        handleClose();
-      }, 5000);
+      // Close the modal
+      handleClose();
     },
     onError: (error) => {
       setError(error.message || "Failed to update grade. Please try again.");
