@@ -268,7 +268,7 @@ const TaskScreen = ({ navigation }) => {
   ).length;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar backgroundColor="#233D90" barStyle="light-content" />
 
       <View style={styles.headerContainer}>
@@ -584,7 +584,7 @@ const TaskScreen = ({ navigation }) => {
           <MaterialIcons name="add" size={30} color="#FFFFFF" />
         </TouchableOpacity>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -386,6 +386,18 @@ const EditTaskForm = ({ taskData, navigation, onCancel, onSuccess }) => {
     );
   };
 
+  const handleInputLimit = (itemId) => (text) => {
+    const numericValue = text.replace(/[^0-9]/g, "");
+    const numValue = parseInt(numericValue, 10);
+    if (!isNaN(numValue) && numValue <= 100) {
+      handleUpdateCriteria(itemId, "weight", numericValue);
+    } else if (numericValue === "") {
+      handleUpdateCriteria(itemId, "weight", "");
+    } else {
+      handleUpdateCriteria(itemId, "weight", "100");
+    }
+  };
+
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
@@ -769,8 +781,21 @@ const EditTaskForm = ({ taskData, navigation, onCancel, onSuccess }) => {
                     <MaterialIcons name="remove" size={20} color="#575757" />
                   </TouchableOpacity>
 
-                  <View className="h-10 px-4 justify-center items-center border-t border-b border-neutral-300 bg-white">
-                    <Text style={fonts.ecTextBody2}>{item.weight}</Text>
+                  <View>
+                    <Input
+                      value={item.weight}
+                      onChangeText={handleInputLimit(item.id)}
+                      keyboardType="numeric"
+                      className="h-10 px-2 py-0 border-t border-b border-neutral-300 bg-white"
+                      style={{
+                        width: 100,
+                        height: 36,
+                        textAlign: "center",
+                        fontSize: 14,
+                        paddingVertical: 0,
+                      }}
+                      variant="base"
+                    />
                   </View>
 
                   <TouchableOpacity

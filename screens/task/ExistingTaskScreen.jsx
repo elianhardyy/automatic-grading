@@ -150,7 +150,7 @@ const ExistingTaskScreen = ({ route, navigation }) => {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50">
+    <View className="flex-1 bg-neutral-50">
       <StatusBar barStyle="light-content" backgroundColor="#233D90" />
 
       {/* Header */}
@@ -243,7 +243,7 @@ const ExistingTaskScreen = ({ route, navigation }) => {
           )}
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
