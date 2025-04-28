@@ -249,7 +249,13 @@ const GradingAssessmentTaskModal = ({
                   onBlur={() => setTouched(true)}
                   error={touched ? urlError : ""}
                   required
-                  icon={<MaterialIcons name="link" size={20} color="#233D90" />}
+                  prefixIcon={
+                    <MaterialIcons name="link" size={20} color="#233D90" />
+                  }
+                  iconPosition="left"
+                  className="flex-1 overflow-hidden" // Add overflow-hidden here
+                  multiline={true} // Allow multi-line input for long URLs
+                  numberOfLines={2}
                 />
               </View>
             </ScrollView>
