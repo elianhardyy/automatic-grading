@@ -87,6 +87,7 @@ const initialState = {
   profile: null,
   loading: false,
   error: null,
+  pictureTrainer: null,
 };
 const profileSlice = createSlice({
   name: "profile",
@@ -96,7 +97,8 @@ const profileSlice = createSlice({
       state.error = null;
     },
     setProfilePicture: (state, action) => {
-      state.profile.picture = action.payload;
+      state.pictureTrainer = action.payload;
+      //state.profile.picture = action.payload;
     },
   },
   extraReducers: (builder) => {

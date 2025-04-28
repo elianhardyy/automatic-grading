@@ -16,17 +16,23 @@ import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { fonts } from "../../utils/font";
-import { profileService } from "../../services/slice/profileService";
+import {
+  profileService,
+  setProfilePicture,
+} from "../../services/slice/profileService";
 import InputGroup from "../../components/common/InputGroup";
 import { API_URL } from "../../constant/uri";
 import EditProfileForm from "../../components/profile/EditProfileForm";
 
 const EditProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { profile, loading, error } = useSelector((state) => state.profile);
-  const [image, setImage] = useState(profile?.profilePicture || null);
+  const { profile, loading, error, pictureTrainer } = useSelector(
+    (state) => state.profile
+  );
+  const [image, setImage] = useState(
+    profile?.profilePicture || pictureTrainer || null
+  );
   const [imageUploading, setImageUploading] = useState(false);
-
   useEffect(() => {
     dispatch(profileService.profileTrainer());
   }, [dispatch]);
@@ -43,7 +49,11 @@ const EditProfileScreen = ({ navigation }) => {
         name: `profile-picture.${fileType}`,
         type: `image/${fileType}`,
       });
-      await dispatch(profileService.updateProfilePicture(formData)).unwrap();
+      const pictureData = await dispatch(
+        profileService.updateProfilePicture(formData)
+      ).unwrap();
+      dispatch(setProfilePicture(pictureData.newProfilePictureURL));
+      setImage(pictureData.newProfilePictureURL);
     } catch (error) {
       Alert.alert(
         "Error",

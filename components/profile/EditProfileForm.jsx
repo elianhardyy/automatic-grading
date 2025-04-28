@@ -88,14 +88,18 @@ const EditProfileForm = ({
   };
 
   const handleUpdateProfile = () => {
+    if (image) {
+      dispatch(setProfilePicture(image));
+    }
     if (validate()) {
       const profileData = {
         name,
         address,
         phoneNumber,
       };
-      const splitImageUri = image.split("/").pop();
-      dispatch(setProfilePicture(splitImageUri));
+      //const splitImageUri = image.split("/").pop();
+      //dispatch(setProfilePicture(splitImageUri));
+
       dispatch(profileService.updateProfile(profileData));
       navigation.goBack();
     }

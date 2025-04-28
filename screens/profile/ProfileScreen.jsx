@@ -137,16 +137,15 @@ const ProfileSkeletonScreen = () => (
 
 const ProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { profile, loading, error, loadingPicture } = useSelector(
-    (state) => state.profile
-  );
+  const { profile, loading, error, loadingPicture, pictureTrainer } =
+    useSelector((state) => state.profile);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (!profile && !loading) {
       dispatch(profileService.profileTrainer());
     }
-  }, [dispatch, profile, loading]);
+  }, [dispatch, profile, loading, pictureTrainer]);
 
   const onRefresh = React.useCallback(() => {
     setIsRefreshing(true);
@@ -230,7 +229,7 @@ const ProfileScreen = ({ navigation }) => {
   }
 
   const renderProfileImage = () => {
-    const pictureUrl = profile?.picture || profile?.profilePicture;
+    const pictureUrl = pictureTrainer || profile?.profilePicture;
     if (loadingPicture) {
       return <Skeleton width={80} height={80} radius={40} />;
     }
