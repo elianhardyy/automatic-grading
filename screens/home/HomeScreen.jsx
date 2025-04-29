@@ -151,7 +151,7 @@ const HomeScreen = ({ navigation }) => {
           return false;
         }
 
-        return currentDate >= assignedDate && currentDate < dueDate;
+        return currentDate < dueDate;
       } catch (e) {
         console.error("Error parsing task dates:", e);
         return false; // Treat errors as not ongoing
@@ -315,6 +315,7 @@ const HomeScreen = ({ navigation }) => {
   const handleAllAssessments = () => {
     console.log("Navigate to All Assessments screen"); // Add navigation later
     // navigation.navigate('AssessmentSummaryScreen');
+    navigation.navigate("EditProfile");
   };
 
   // --- Render ---
@@ -402,7 +403,7 @@ const HomeScreen = ({ navigation }) => {
         </View>
 
         {/* Search Bar Area */}
-        <View className="px-4 py-3 bg-neutral-50 border-b border-neutral-200">
+        {/* <View className="px-4 py-3 bg-neutral-50 border-b border-neutral-200">
           <Input
             placeholder="Search tasks, trainees..." // Simplified placeholder
             value={searchQuery}
@@ -414,14 +415,14 @@ const HomeScreen = ({ navigation }) => {
             className="bg-white" // Ensure background contrast if needed
             inputMode="search"
             returnKeyType="search"
-          />
-          {/* Optional: Add filter/sort buttons here later */}
-        </View>
+          /> */}
+        {/* Optional: Add filter/sort buttons here later */}
+        {/* </View> */}
       </View>
 
       <ScrollView
         className="flex-1 bg-neutral-100" // Match SafeAreaView background
-        contentContainerStyle={{ paddingTop: 160, paddingBottom: 40 }} // Adjust padding top for header+search, add bottom padding
+        contentContainerStyle={{ paddingTop: 60, paddingBottom: 40 }} // Adjust padding top for header+search, add bottom padding
         keyboardShouldPersistTaps="handled" // Dismiss keyboard on scroll tap
         refreshControl={
           // Add pull-to-refresh
@@ -840,21 +841,17 @@ const HomeScreen = ({ navigation }) => {
                     activeOpacity={0.7}
                     className="bg-info-500 rounded-xl p-4 h-[100px] items-center justify-center shadow active:bg-info-600"
                   >
-                    <MaterialCommunityIcons
-                      name="chart-line-variant"
-                      size={28}
-                      color="white"
-                    />
+                    <MaterialIcons name="person-2" size={28} color="white" />
                     <Text
                       className="text-white text-center mt-1.5 text-sm"
                       style={fonts.ecTextBody3}
                     >
-                      Assessments
+                      Edit Profile
                     </Text>
                   </TouchableOpacity>
                 </View>
                 {/* View Trainees Button */}
-                <View className="w-1/2 px-1.5 mb-3">
+                {/* <View className="w-1/2 px-1.5 mb-3">
                   <TouchableOpacity
                     onPress={handleViewTrainees}
                     activeOpacity={0.7}
@@ -868,9 +865,9 @@ const HomeScreen = ({ navigation }) => {
                       View Trainees
                     </Text>
                   </TouchableOpacity>
-                </View>
+                </View> */}
                 {/* View Tasks Button */}
-                <View className="w-1/2 px-1.5 mb-3">
+                {/* <View className="w-1/2 px-1.5 mb-3">
                   <TouchableOpacity
                     onPress={handleSeeAllTasks}
                     activeOpacity={0.7}
@@ -888,7 +885,7 @@ const HomeScreen = ({ navigation }) => {
                       View Tasks
                     </Text>
                   </TouchableOpacity>
-                </View>
+                </View> */}
               </>
             )}
           </View>
@@ -908,14 +905,14 @@ const HomeScreen = ({ navigation }) => {
             />
           )}
 
-          {!isInitialLoading && hasUrgentTasks && !isTasksError && (
+          {/* {!isInitialLoading && hasUrgentTasks && !isTasksError && (
             <Alert
               title="Deadline Approaching"
               message="Some tasks have deadlines within the next 3 days."
               variant="warning" // Use warning instead of alert for less severe reminder
               className="mb-3"
             />
-          )}
+          )} */}
 
           {/* Generic Error Alert */}
           {!isInitialLoading &&

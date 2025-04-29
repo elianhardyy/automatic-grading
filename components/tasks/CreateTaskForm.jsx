@@ -603,7 +603,7 @@ const CreateTaskForm = ({ navigation, batchId, goBack }) => {
 
                   <View>
                     <Input
-                      value={item.weight}
+                      value={"100"}
                       onChangeText={handleInputLimit(item.id)}
                       keyboardType="numeric"
                       className="h-10 px-2 py-0 border-t border-b border-neutral-300 bg-white"
