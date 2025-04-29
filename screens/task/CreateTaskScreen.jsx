@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   View,
-  SafeAreaView,
   StatusBar,
   Text,
   ActivityIndicator,
@@ -15,6 +14,7 @@ import Select from "../../components/common/Select";
 import { batchService } from "../../services/query/batchService";
 import Button from "../../components/common/Button";
 import Alert from "../../components/common/Alert";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const CreateTaskScreen = ({ navigation }) => {
   const [selectedBatch, setSelectedBatch] = useState(null);

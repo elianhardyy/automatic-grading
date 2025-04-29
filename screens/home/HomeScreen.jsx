@@ -6,7 +6,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   Image,
   RefreshControl, // Added for pull-to-refresh
@@ -33,6 +32,7 @@ import { fonts } from "../../utils/font";
 import { MotiView } from "moti";
 import { Easing } from "react-native-reanimated";
 import { API_URL } from "../../constant/uri"; // Ensure API_URL is correctly defined
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Skeleton component (assuming it's defined correctly)
 const Skeleton = ({ width = "100%", height = 20, radius = 6, style }) => (

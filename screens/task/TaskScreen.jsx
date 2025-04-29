@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   StatusBar,
   StyleSheet,
@@ -27,6 +26,7 @@ import TaskList from "../../components/tasks/TaskList";
 import { useDispatch } from "react-redux";
 import { setOngoing } from "../../services/slice/ongoing";
 import { traineeTaskService } from "../../services/query/traineeTaskService";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const SkeletonFilter = () => (
   <MotiView
@@ -268,7 +268,7 @@ const TaskScreen = ({ navigation }) => {
   ).length;
 
   return (
-    <View style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#233D90" barStyle="light-content" />
 
       <View style={styles.headerContainer}>
@@ -584,7 +584,7 @@ const TaskScreen = ({ navigation }) => {
           <MaterialIcons name="add" size={30} color="#FFFFFF" />
         </TouchableOpacity>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

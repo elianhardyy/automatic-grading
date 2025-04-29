@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  SafeAreaView,
   StatusBar,
   Text,
   FlatList,
@@ -17,6 +16,7 @@ import Alert from "../../components/common/Alert";
 import ExistingTaskForm from "../../components/tasks/ExistingTaskForm";
 import { MotiView } from "moti";
 import { Easing } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Skeleton component for loading states
 const Skeleton = ({ width = "100%", height = 20, radius = 6, style }) => (
@@ -150,7 +150,7 @@ const ExistingTaskScreen = ({ route, navigation }) => {
   );
 
   return (
-    <View className="flex-1 bg-neutral-50">
+    <SafeAreaView className="flex-1 bg-neutral-50">
       <StatusBar barStyle="light-content" backgroundColor="#233D90" />
 
       {/* Header */}
@@ -243,7 +243,7 @@ const ExistingTaskScreen = ({ route, navigation }) => {
           )}
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

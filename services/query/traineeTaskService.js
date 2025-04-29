@@ -7,7 +7,9 @@ export const traineeTaskService = {
         batchTaskId,
         filter
       );
+      console.log("dari service: ", batchTaskId);
 
+      console.log("data trainee task: ", response.data);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: error.message };

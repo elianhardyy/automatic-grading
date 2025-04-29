@@ -19,6 +19,7 @@ import Alert from "../../components/common/Alert";
 import EditTaskForm from "../../components/tasks/EditTaskForm";
 import { MotiView } from "moti";
 import { Easing } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Skeleton = ({ width = "100%", height = 20, radius = 6, style }) => (
   <MotiView
