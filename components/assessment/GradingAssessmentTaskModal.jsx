@@ -21,6 +21,7 @@ import Alert from "../common/Alert";
 import { fonts } from "../../utils/font";
 import { traineeService } from "../../services/query/traineeService";
 import { gradingService } from "../../services/query/gradingService";
+import TextArea from "../common/TextArea";
 
 // Function to format current date and time to yyyy-MM-dd HH:mm:ss
 const getCurrentDateTime = () => {
@@ -46,14 +47,14 @@ const GradingAssessmentTaskModal = ({
   const [gitRepoUrl, setGitRepoUrl] = useState("");
   const [urlError, setUrlError] = useState("");
   const [touched, setTouched] = useState(false);
-
+  console.log("ini trainee task data: ", traineeTaskData);
   const queryClient = useQueryClient();
 
   // Fetch trainee details
-  const { data: traineeDetail } = useQuery({
-    queryKey: ["trainee"],
-    queryFn: () => traineeService.fetchTraineeById(traineeTaskData.traineeId),
-  });
+  // const { data: traineeDetail } = useQuery({
+  //   queryKey: ["trainee"],
+  //   queryFn: () => traineeService.fetchTraineeById(traineeTaskData.traineeId),
+  // });
 
   const { mutate, isPending } = useMutation({
     mutationFn: gradingService.updategradingTrainee,
@@ -63,9 +64,6 @@ const GradingAssessmentTaskModal = ({
       navigation.navigate("GradingResultScreen", {
         gradingData: response.data,
       });
-
-      // Close the modal
-      handleClose();
     },
     onError: (error) => {
       setError(error.message || "Failed to update grade. Please try again.");
@@ -105,7 +103,7 @@ const GradingAssessmentTaskModal = ({
     }
 
     // Get traineeTaskId from traineeDetail
-    const traineeTaskId = traineeDetail?.data?.traineeTasks?.[0]?.id;
+    const traineeTaskId = traineeTaskData?.id;
     if (!traineeTaskId) {
       setError("Could not find trainee task ID. Please try again.");
       return;
@@ -142,7 +140,7 @@ const GradingAssessmentTaskModal = ({
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={[fonts.ecTextBody3M, styles.modalTitle]}>
+              <Text style={[fonts.ecTextBody1, styles.modalTitle]}>
                 Grade Assessment Task
               </Text>
               <TouchableOpacity
@@ -239,7 +237,7 @@ const GradingAssessmentTaskModal = ({
               )}
 
               <View style={styles.inputSection}>
-                <InputGroup
+                {/* <InputGroup
                   label="Git Repository URL"
                   placeholder="Enter repository URL (e.g., https://github.com/username/repo)"
                   value={gitRepoUrl}
@@ -247,13 +245,21 @@ const GradingAssessmentTaskModal = ({
                   onBlur={() => setTouched(true)}
                   error={touched ? urlError : ""}
                   required
-                  prefixIcon={
-                    <MaterialIcons name="link" size={20} color="#233D90" />
-                  }
+                  prefixIcon="link"
                   iconPosition="left"
                   className="flex-1 overflow-hidden" // Add overflow-hidden here
                   multiline={true} // Allow multi-line input for long URLs
                   numberOfLines={2}
+                /> */}
+                <TextArea
+                  placeholder="Enter repository URL (e.g., https://github.com/username/repo)"
+                  rows={3}
+                  value={gitRepoUrl}
+                  variant="rouneded"
+                  onChangeText={(text) => setGitRepoUrl(text)}
+                  onBlur={() => setTouched(true)}
+                  error={touched ? urlError : ""}
+                  required
                 />
               </View>
             </ScrollView>

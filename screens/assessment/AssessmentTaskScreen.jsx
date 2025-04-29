@@ -36,6 +36,7 @@ import GradingAssessmentTaskModal from "../../components/assessment/GradingAsses
 
 const AssessmentTaskScreen = ({ route, navigation }) => {
   const { batchTaskId } = route.params;
+  console.log(batchTaskId);
   const [showForm, setShowForm] = useState(false);
   const [showTraineeTaskTypeSelection, setShowTraineeTaskTypeSelection] =
     useState(false);
@@ -73,7 +74,7 @@ const AssessmentTaskScreen = ({ route, navigation }) => {
   const queryFilter = useMemo(
     () => ({
       size: pageSize,
-      sortBy: sortBy,
+      //sortBy: sortBy,
       direction:
         sortBy === "assignedDate" || sortBy === "dueDate" ? "desc" : "asc",
       //   batchId: selectedBatch || undefined,
@@ -122,16 +123,12 @@ const AssessmentTaskScreen = ({ route, navigation }) => {
         error?.message,
         error?.response?.data
       ),
+    refetchInterval: 10000,
+    refetchIntervalInBackground: false,
+    // Enable real-time focus and window refocus behaviors
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
-  const traineetaskpagess = traineeTaskPages?.data;
-  console.log("ini trainee task page:", traineetaskpagess);
-  // const transformedTasks = useMemo(
-  //       () =>
-  //         traineeTaskPages?.pages?.flatMap((page) =>
-  //           Array.isArray(page?.data) ? page.data.map(transformTaskData) : []
-  //         ) ?? [],
-  //       [traineeTaskPages?.pages]
-  //     );
 
   const renderEmptyList = () => (
     <View style={styles.emptyListContainer}>
@@ -257,7 +254,7 @@ const AssessmentTaskScreen = ({ route, navigation }) => {
                   size="small"
                   variant="filled"
                 />
-                {item.submitTime <= item.dueDate ? (
+                {item.submitTime <= item.batchTask.dueDate ? (
                   <Badge
                     text="On Time"
                     color="success"
@@ -334,23 +331,6 @@ const AssessmentTaskScreen = ({ route, navigation }) => {
           />
         </View>
       ) : (
-        // <FlatList
-        //     data={filteredTraineeTasks}
-        //     renderItem={renderTraineeTaskItem}
-        //     keyExtractor={(item) => item.id}
-        //     contentContainerStyle={styles.listContentContainer}
-        //     ListEmptyComponent={
-        //         !isOverallLoading && !isRefetching ? renderEmptyList : null
-        //     }
-        //     onEndReached={() => {
-        //         if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-        //     }}
-        //     onEndReachedThreshold={0.7}
-        //     ListFooterComponent={renderListFooter}
-        //     refreshing={isRefetching}
-        //     onRefresh={reFetchAllTraineeTaskByBatchTaskId}
-        //     showsVerticalScrollIndicator={false}
-        // />
         <FlatList
           data={
             traineeTaskPages?.pages?.flatMap((page) =>

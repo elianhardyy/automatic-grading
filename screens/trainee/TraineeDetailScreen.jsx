@@ -1,11 +1,12 @@
 import React from "react";
-import { View, Text, ScrollView, SafeAreaView } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import Button from "../../components/common/Button";
 import Card from "../../components/common/Card";
 import { fonts } from "../../utils/font";
 import { MaterialIcons } from "@expo/vector-icons";
 import { traineeService } from "../../services/query/traineeService";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const TraineeDetailScreen = ({ trainee, onBack }) => {
   const { data: traineeDetails, isLoading } = useQuery({

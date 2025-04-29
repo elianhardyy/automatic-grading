@@ -25,7 +25,6 @@ import TaskList from "../../components/tasks/TaskList";
 
 import { useDispatch } from "react-redux";
 import { setOngoing } from "../../services/slice/ongoing";
-import { traineeTaskService } from "../../services/query/traineeTaskService";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const SkeletonFilter = () => (
@@ -44,7 +43,6 @@ const SkeletonFilter = () => (
 
 const transformTaskData = (task) => {
   const batchTask = task.batchTasks?.[0] || {};
-  // console.log(task);
   return {
     id: task.id,
     batchTaskId: batchTask.id,
@@ -54,7 +52,7 @@ const transformTaskData = (task) => {
     batch: batchTask.batchName || "N/A",
     batchNumber: batchTask.batchNumber || "",
     batchId: batchTask.batchId || "",
-    deadline: batchTask.dueDate || new Date().toISOString(),
+    deadline: batchTask.dueDate || new Date().toISOString(), // Keep original due date string/object
     assignedDate: batchTask.assignedDate || new Date().toISOString(),
     totalTrainees: batchTask.totalTrainees ?? 0,
     assessedTrainees: batchTask.assessedTrainees ?? 0,
@@ -62,6 +60,37 @@ const transformTaskData = (task) => {
     status: task.status || "ongoing",
   };
 };
+
+const isTaskOngoing = (task) => {
+  try {
+    const now = new Date();
+    const dueDate = new Date(task.deadline);
+
+    if (isNaN(dueDate.getTime())) {
+      return false;
+    }
+    return now < dueDate;
+  } catch {
+    return false;
+  }
+};
+
+const isTaskCompleted = (task) => {
+  try {
+    const now = new Date();
+    const dueDate = new Date(task.deadline); // Task's due date and time
+
+    // If the due date is invalid, it cannot be completed based on deadline
+    if (isNaN(dueDate.getTime())) {
+      return false;
+    }
+    // Completed if the current time is exactly the due date/time or later
+    return now >= dueDate;
+  } catch {
+    return false; // Error during date parsing
+  }
+};
+// --- MODIFICATION END ---
 
 const TaskScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -73,17 +102,16 @@ const TaskScreen = ({ navigation }) => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [sortBy, setSortBy] = useState("name");
+  const [sortDirection, setSortDirection] = useState("asc");
   const [pageSize] = useState(10);
 
-  // Include selectedStatus in the query filter
   const queryFilter = useMemo(
     () => ({
       size: pageSize,
       sortBy: sortBy,
-      direction:
-        sortBy === "assignedDate" || sortBy === "dueDate" ? "desc" : "asc",
+      direction: sortDirection,
       batchName: selectedBatch || undefined,
-      taskCategory: selectedCategory || undefined, // Ganti dari categoryId menjadi taskCategory
+      taskCategory: selectedCategory || undefined,
       status:
         selectedStatus === "assessed"
           ? "completed"
@@ -91,7 +119,14 @@ const TaskScreen = ({ navigation }) => {
           ? "incomplete"
           : undefined,
     }),
-    [pageSize, sortBy, selectedBatch, selectedCategory, selectedStatus]
+    [
+      pageSize,
+      sortBy,
+      sortDirection,
+      selectedBatch,
+      selectedCategory,
+      selectedStatus,
+    ]
   );
 
   const {
@@ -158,6 +193,7 @@ const TaskScreen = ({ navigation }) => {
     }));
     return [...defaultOption, ...batchOpts];
   }, [batchesData]);
+
   const categoryOptions = useMemo(() => {
     const defaultOption = [{ label: "All Categories", value: "" }];
     const categories = categoriesData?.data?.data ?? categoriesData?.data ?? [];
@@ -168,62 +204,84 @@ const TaskScreen = ({ navigation }) => {
     }));
     return [...defaultOption, ...categoryOpts];
   }, [categoriesData]);
+
   const statusOptions = [
     { label: "All Status", value: "" },
     { label: "Assessed", value: "assessed" },
     { label: "Not Assessed", value: "not_assessed" },
   ];
-  const sortOptions = [
-    { label: "Name (A-Z)", value: "name" },
-    { label: "Due Date (Newest First)", value: "dueDate" },
-    { label: "Assigned Date (Newest First)", value: "assignedDate" },
-  ];
 
-  const isTaskOngoing = (task) => {
-    try {
-      const currentDate = new Date();
-      const assignedDate = new Date(task.assignedDate);
-      const dueDate = new Date(task.deadline);
-      if (isNaN(assignedDate.getTime()) || isNaN(dueDate.getTime()))
-        return false;
-      return currentDate >= assignedDate && currentDate < dueDate;
-    } catch {
-      return false;
+  const sortOptions = useMemo(
+    () => [
+      { label: "Name (A-Z)", value: "name-asc" },
+      { label: "Name (Z-A)", value: "name-desc" },
+      // Other options can be added here following the 'field-direction' pattern
+      // { label: "Due Date (Newest First)", value: "dueDate-desc" },
+      // { label: "Due Date (Oldest First)", value: "dueDate-asc" },
+    ],
+    []
+  );
+
+  const handleSortChange = (value) => {
+    if (!value) {
+      setSortBy("name");
+      setSortDirection("asc");
+      return;
     }
+    const [field, direction] = value.split("-");
+    setSortBy(field);
+    setSortDirection(direction);
   };
 
-  const filteredTasks = useMemo(() => {
+  // --- MODIFICATION START ---
+  // Step 1: Filter based on API results and search query
+  const filteredTasksBase = useMemo(() => {
     let tasksToFilter = transformedTasks;
-
     if (searchQuery) {
       tasksToFilter = tasksToFilter.filter((task) =>
         task.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-
-    if (selectedTab !== "all") {
-      tasksToFilter = tasksToFilter.filter((task) => {
-        if (selectedTab === "ongoing") return isTaskOngoing(task);
-        if (selectedTab === "completed")
-          return (
-            task.totalTrainees > 0 &&
-            task.assessedTrainees === task.totalTrainees
-          );
-        return true;
-      });
-    }
-
-    // Don't double-filter for status since we're sending it to the API
     return tasksToFilter;
-  }, [transformedTasks, searchQuery, selectedTab]);
+  }, [transformedTasks, searchQuery]);
 
-  const onlyOnGoingTasks = useMemo(
-    () => filteredTasks.filter(isTaskOngoing),
-    [filteredTasks]
+  // Step 2: Apply tab filtering logic (client-side) based on deadline time
+  const filteredTasks = useMemo(() => {
+    if (selectedTab === "all") {
+      return filteredTasksBase;
+    }
+    return filteredTasksBase.filter((task) => {
+      if (selectedTab === "ongoing") {
+        return isTaskOngoing(task); // Use new time-based helper
+      }
+      if (selectedTab === "completed") {
+        return isTaskCompleted(task); // Use new time-based helper
+      }
+      return true; // Should not happen with current tabs
+    });
+  }, [filteredTasksBase, selectedTab]);
+
+  // Step 3: Calculate counts for badges based on the base list and new helpers
+  // Every valid task should fall into exactly one category now.
+  const countAll = useMemo(() => filteredTasksBase.length, [filteredTasksBase]);
+  const countOngoing = useMemo(
+    () => filteredTasksBase.filter(isTaskOngoing).length,
+    [filteredTasksBase]
+  );
+  const countCompleted = useMemo(
+    () => filteredTasksBase.filter(isTaskCompleted).length,
+    [filteredTasksBase]
+  );
+
+  // Update Redux state with ongoing tasks using the new logic
+  const tasksForRedux = useMemo(
+    () => filteredTasksBase.filter(isTaskOngoing),
+    [filteredTasksBase]
   );
   useEffect(() => {
-    dispatch(setOngoing(onlyOnGoingTasks));
-  }, [onlyOnGoingTasks, dispatch]);
+    dispatch(setOngoing(tasksForRedux));
+  }, [tasksForRedux, dispatch]);
+  // --- MODIFICATION END ---
 
   const handleAddTask = () => navigation.navigate("CreateTaskScreen");
   const handleDetailTask = (taskId) =>
@@ -231,23 +289,18 @@ const TaskScreen = ({ navigation }) => {
   const handleAssessTask = (taskId, batchId, item, batchTaskId) => {
     navigation.navigate("AssessmentTaskScreen", { batchTaskId });
   };
-  // const traineeTaskBatch =
-  //   traineeTaskService.fetchAllTraineeTaskByBatchTaskId();
-  // const { data: traineeTaskAssessed } = useQuery({
-  //   queryKey: ["traineeTaskAssessed"],
-  //   queryFn: async () =>
-  //     traineeTaskService.fetchAllTraineeTaskByBatchTaskId(batchTaskId),
-  // });
+
   const handleResetFilters = () => {
     setSelectedBatch("");
     setSelectedCategory("");
     setSelectedStatus("");
     setSortBy("name");
+    setSortDirection("asc");
     setSearchQuery("");
+    // API refetch happens on Apply
   };
 
   const handleApplyFilters = () => {
-    // Trigger refetch when applying filters
     refetchTasks();
     setIsFilterVisible(false);
   };
@@ -257,20 +310,16 @@ const TaskScreen = ({ navigation }) => {
       !!selectedBatch ||
       !!selectedCategory ||
       !!selectedStatus ||
-      sortBy !== "name"
+      sortBy !== "name" ||
+      sortDirection !== "asc"
     );
-  }, [selectedBatch, selectedCategory, selectedStatus, sortBy]);
-
-  const countAll = filteredTasks.length;
-  const countOngoing = onlyOnGoingTasks.length;
-  const countCompleted = filteredTasks.filter(
-    (t) => t.totalTrainees > 0 && t.assessedTrainees === t.totalTrainees
-  ).length;
+  }, [selectedBatch, selectedCategory, selectedStatus, sortBy, sortDirection]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#233D90" barStyle="light-content" />
 
+      {/* Header */}
       <View style={styles.headerContainer}>
         <View style={styles.headerTopRow}>
           <Text style={[fonts.ecTextHeader2M, styles.headerTitle]}>
@@ -286,17 +335,14 @@ const TaskScreen = ({ navigation }) => {
         <InputGroup
           placeholder="Search task name..."
           value={searchQuery}
-          onChangeText={(text) => {
-            setSearchQuery(text);
-            // Allow a delay before filtering to avoid excessive API calls
-            // if your API supports searching, you could include it in queryFilter
-          }}
+          onChangeText={setSearchQuery}
           variant="rounded"
           prefixIcon="search"
           iconPosition="left"
         />
       </View>
 
+      {/* Tabs */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[
@@ -315,6 +361,7 @@ const TaskScreen = ({ navigation }) => {
             >
               All
             </Text>
+            {/* Use correct count */}
             {!isOverallLoading && (
               <Badge
                 text={countAll}
@@ -343,6 +390,7 @@ const TaskScreen = ({ navigation }) => {
             >
               Ongoing
             </Text>
+            {/* Use correct count */}
             {!isOverallLoading && (
               <Badge
                 text={countOngoing}
@@ -371,6 +419,7 @@ const TaskScreen = ({ navigation }) => {
             >
               Completed
             </Text>
+            {/* Use correct count */}
             {!isOverallLoading && (
               <Badge
                 text={countCompleted}
@@ -384,6 +433,7 @@ const TaskScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
+      {/* Filter Toggle Button */}
       <TouchableOpacity
         style={styles.filterToggleButton}
         onPress={() => setIsFilterVisible(!isFilterVisible)}
@@ -402,10 +452,12 @@ const TaskScreen = ({ navigation }) => {
         />
       </TouchableOpacity>
 
+      {/* Filter Panel */}
       {isFilterVisible && (
         <View style={styles.filterPanel}>
           {isFilterDataLoading ? (
             <View>
+              {/* Skeleton */}
               <View style={styles.filterSkeletonRow}>
                 <View style={styles.filterSkeletonColumn}>
                   <MotiView
@@ -463,6 +515,7 @@ const TaskScreen = ({ navigation }) => {
             </View>
           ) : (
             <>
+              {/* Filter controls */}
               <View style={styles.filterRow}>
                 <View style={styles.filterColumn}>
                   <Text style={[fonts.ecTextBody3, styles.filterLabel]}>
@@ -508,8 +561,8 @@ const TaskScreen = ({ navigation }) => {
                   </Text>
                   <Select
                     options={sortOptions}
-                    value={sortBy}
-                    onValueChange={setSortBy}
+                    value={`${sortBy}-${sortDirection}`}
+                    onValueChange={handleSortChange}
                     placeholder="Sort By"
                     variant="rounded"
                   />
@@ -536,6 +589,7 @@ const TaskScreen = ({ navigation }) => {
         </View>
       )}
 
+      {/* Task List */}
       <View style={styles.listContainer}>
         {isOverallError ? (
           <View style={styles.errorContainer}>
@@ -557,6 +611,7 @@ const TaskScreen = ({ navigation }) => {
           </View>
         ) : (
           <TaskList
+            // Pass the final client-side filtered tasks for the current tab
             tasks={filteredTasks}
             isLoading={isOverallLoading}
             isRefetching={isRefetching}
@@ -575,6 +630,7 @@ const TaskScreen = ({ navigation }) => {
         )}
       </View>
 
+      {/* FAB */}
       {!isFilterVisible && (
         <TouchableOpacity
           style={styles.fab}
@@ -588,6 +644,7 @@ const TaskScreen = ({ navigation }) => {
   );
 };
 
+// Styles remain the same
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#F9FAFB" },
   headerContainer: {

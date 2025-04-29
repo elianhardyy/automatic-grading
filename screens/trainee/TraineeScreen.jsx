@@ -3,8 +3,9 @@ import {
   View,
   Text,
   FlatList,
-  SafeAreaView,
   ActivityIndicator,
+  StatusBar,
+  ScrollView,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
@@ -16,6 +17,7 @@ import { fonts } from "../../utils/font";
 import TraineeDetailScreen from "./TraineeDetailScreen";
 import { batchService } from "../../services/query/batchService";
 import { traineeService } from "../../services/query/traineeService";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const TraineeScreen = () => {
   const [selectedBatch, setSelectedBatch] = useState(null);
@@ -141,82 +143,103 @@ const TraineeScreen = () => {
     );
   }
 
+  const renderContent = () => {
+    if (traineesLoading && selectedBatch) {
+      return (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#233D90" />
+        </View>
+      );
+    } else if (selectedBatch) {
+      if (traineesError) {
+        return (
+          <View className="flex-1 justify-center items-center">
+            <MaterialIcons name="error" size={64} color="#C2C2C2" />
+            <Text style={fonts.ecTextBody1} className="text-neutral-500 mt-4">
+              Error loading trainees. Please try again.
+            </Text>
+          </View>
+        );
+      } else if (filteredTrainees.length > 0) {
+        return (
+          <FlatList
+            data={filteredTrainees}
+            renderItem={renderTraineeItem}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false} // Disable FlatList scrolling
+            contentContainerStyle={{ paddingBottom: 20 }}
+          />
+        );
+      } else {
+        return (
+          <View className="flex-1 justify-center items-center">
+            <MaterialIcons name="person-search" size={64} color="#C2C2C2" />
+            <Text style={fonts.ecTextBody1} className="text-neutral-500 mt-4">
+              No trainees found
+            </Text>
+          </View>
+        );
+      }
+    } else {
+      return (
+        <View className="flex-1 justify-center items-center">
+          <MaterialIcons name="group" size={64} color="#C2C2C2" />
+          <Text style={fonts.ecTextBody1} className="text-neutral-500 mt-4">
+            Select a batch to view trainees
+          </Text>
+        </View>
+      );
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-neutral-50">
-      <View className="flex-1 p-4">
-        <Text style={fonts.ecTextHeader2} className="text-neutral-800 mb-6">
+      {/* Fixed Header */}
+      <View className="bg-primary-500 p-6 z-10">
+        <Text style={[fonts.ecTextHeader2M]} className="text-white">
           Trainee Management
         </Text>
-
-        <View className="mb-4">
-          <Text style={fonts.ecTextBody2} className="text-neutral-700 mb-1">
-            Select Batch
-          </Text>
-          {batchesLoading ? (
-            <ActivityIndicator size="small" color="#233D90" />
-          ) : batchesError ? (
-            <Text style={fonts.ecTextBody3} className="text-alert-500">
-              Error loading batches. Please try again.
-            </Text>
-          ) : (
-            <Select
-              placeholder="Select Batch"
-              options={batchOptions}
-              value={selectedBatch}
-              onValueChange={handleBatchChange}
-              variant="rounded"
-            />
-          )}
-        </View>
-
-        {selectedBatch && (
-          <View className="mb-4">
-            <Input
-              placeholder="Search trainees..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              variant="rounded"
-              prefixIcon="search"
-            />
-          </View>
-        )}
-
-        {traineesLoading && selectedBatch ? (
-          <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="#233D90" />
-          </View>
-        ) : selectedBatch ? (
-          traineesError ? (
-            <View className="flex-1 justify-center items-center">
-              <MaterialIcons name="error" size={64} color="#C2C2C2" />
-              <Text style={fonts.ecTextBody1} className="text-neutral-500 mt-4">
-                Error loading trainees. Please try again.
-              </Text>
-            </View>
-          ) : filteredTrainees.length > 0 ? (
-            <FlatList
-              data={filteredTrainees}
-              renderItem={renderTraineeItem}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={{ paddingBottom: 20 }}
-            />
-          ) : (
-            <View className="flex-1 justify-center items-center">
-              <MaterialIcons name="person-search" size={64} color="#C2C2C2" />
-              <Text style={fonts.ecTextBody1} className="text-neutral-500 mt-4">
-                No trainees found
-              </Text>
-            </View>
-          )
-        ) : (
-          <View className="flex-1 justify-center items-center">
-            <MaterialIcons name="group" size={64} color="#C2C2C2" />
-            <Text style={fonts.ecTextBody1} className="text-neutral-500 mt-4">
-              Select a batch to view trainees
-            </Text>
-          </View>
-        )}
       </View>
+
+      {/* Scrollable Content */}
+      <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }}>
+        <View className="flex-1 p-4">
+          <View className="mb-4">
+            <Text style={fonts.ecTextBody2} className="text-neutral-700 mb-1">
+              Select Batch
+            </Text>
+            {batchesLoading ? (
+              <ActivityIndicator size="small" color="#233D90" />
+            ) : batchesError ? (
+              <Text style={fonts.ecTextBody3} className="text-alert-500">
+                Error loading batches. Please try again.
+              </Text>
+            ) : (
+              <Select
+                placeholder="Select Batch"
+                options={batchOptions}
+                value={selectedBatch}
+                onValueChange={handleBatchChange}
+                variant="rounded"
+              />
+            )}
+          </View>
+
+          {selectedBatch && (
+            <View className="mb-4">
+              <Input
+                placeholder="Search trainees..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                variant="rounded"
+                prefixIcon="search"
+              />
+            </View>
+          )}
+
+          {renderContent()}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

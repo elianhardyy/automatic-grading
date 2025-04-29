@@ -3,7 +3,7 @@ import { TextInput, View, Text } from "react-native";
 import { fonts } from "../../utils/font";
 
 const Input = ({
-  placeholder = "Input Box",
+  placeholder = "",
   value = "",
   onChangeText,
   disabled = false,

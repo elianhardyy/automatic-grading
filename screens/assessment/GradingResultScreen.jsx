@@ -55,7 +55,7 @@ const GradingResultScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[fonts.ecTextHeading2, styles.headerTitle]}>
+        <Text style={[fonts.ecTextBody1, styles.headerTitle]}>
           Grading Result
         </Text>
         <TouchableOpacity
@@ -73,7 +73,7 @@ const GradingResultScreen = ({ route, navigation }) => {
               Final Score
             </Text>
             <View style={styles.scoreCircle}>
-              <Text style={[fonts.ecTextHeading1, styles.scoreValue]}>
+              <Text style={[fonts.ecTextBody1, styles.scoreValue]}>
                 {totalScore}
               </Text>
             </View>
