@@ -88,6 +88,7 @@ const initialState = {
   loading: false,
   error: null,
   pictureTrainer: null,
+  profileTrainerData: null,
 };
 const profileSlice = createSlice({
   name: "profile",
@@ -99,6 +100,9 @@ const profileSlice = createSlice({
     setProfilePicture: (state, action) => {
       state.pictureTrainer = action.payload;
       //state.profile.picture = action.payload;
+    },
+    setProfile: (state, action) => {
+      state.profileTrainerData = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -183,5 +187,6 @@ const profileSlice = createSlice({
       );
   },
 });
-export const { resetProfileError, setProfilePicture } = profileSlice.actions;
+export const { resetProfileError, setProfilePicture, setProfile } =
+  profileSlice.actions;
 export default profileSlice.reducer;

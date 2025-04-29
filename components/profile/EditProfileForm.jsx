@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { View, Text } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Card from "../common/Card";
 import Button from "../common/Button";
 import InputGroup from "../common/InputGroup";
 import { fonts } from "../../utils/font";
 import {
   profileService,
+  setProfile,
   setProfilePicture,
 } from "../../services/slice/profileService";
 
@@ -19,6 +20,7 @@ const EditProfileForm = ({
   imageUploading,
 }) => {
   const dispatch = useDispatch();
+  //const { profile: profileDataRedux } = useSelector((state) => state.profile);
   const [errors, setErrors] = useState({});
   const [name, setName] = useState(profile?.name);
   const [address, setAddress] = useState(profile?.address || "");
@@ -28,6 +30,7 @@ const EditProfileForm = ({
     address: false,
     phoneNumber: false,
   });
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     validateField();
@@ -97,12 +100,24 @@ const EditProfileForm = ({
         address,
         phoneNumber,
       };
-      //const splitImageUri = image.split("/").pop();
-      //dispatch(setProfilePicture(splitImageUri));
 
       dispatch(profileService.updateProfile(profileData));
       navigation.goBack();
     }
+  };
+
+  const handleCancelUpdateProfile = () => {
+    //console.log("ini dari redux: ", profileDataRedux);
+    const profileDataRedux = {
+      username: user.username,
+      email: profile?.email,
+      name,
+      address,
+      phoneNumber,
+    };
+    console.log("iniiiii dari edit porfile form redux: ", profileDataRedux);
+    dispatch(setProfile(profileDataRedux));
+    navigation.goBack();
   };
 
   return (
@@ -182,7 +197,7 @@ const EditProfileForm = ({
 
         <Button
           title="Cancel"
-          onPress={() => navigation.goBack()}
+          onPress={handleCancelUpdateProfile}
           variant="neutral"
           type="outlined"
           disabled={imageUploading}

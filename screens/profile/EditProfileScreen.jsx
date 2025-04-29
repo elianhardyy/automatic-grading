@@ -23,6 +23,7 @@ import {
 import InputGroup from "../../components/common/InputGroup";
 import { API_URL } from "../../constant/uri";
 import EditProfileForm from "../../components/profile/EditProfileForm";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const EditProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -157,81 +158,85 @@ const EditProfileScreen = ({ navigation }) => {
   }
 
   return (
-    <ScrollView className="flex-1 bg-neutral-100">
-      <View className="bg-primary-500 p-6">
-        <View className="flex-row items-center">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="mr-4"
-          >
-            <MaterialIcons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={fonts.ecTextHeader2} className="text-white">
-            Edit Profile
-          </Text>
-        </View>
-      </View>
-
-      <View className="px-4 mt-4 mb-4">
-        <Card
-          variant="neutral"
-          title="Profile Photo"
-          icon={<MaterialIcons name="photo-camera" size={20} color="#233D90" />}
-          collapsible={false}
-          className="shadow-md"
-        >
-          <View className="items-center my-4">
+    <SafeAreaView className="flex-1 bg-neutral-100">
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        <View className="bg-primary-500 p-6">
+          <View className="flex-row items-center">
             <TouchableOpacity
-              onPress={showImageOptions}
-              disabled={imageUploading}
+              onPress={() => navigation.goBack()}
+              className="mr-4"
             >
-              <View className="relative">
-                {imageUploading ? (
-                  <View className="w-28 h-28 rounded-full bg-neutral-200 justify-center items-center">
-                    <ActivityIndicator size="large" color="#233D90" />
-                  </View>
-                ) : !image ? (
-                  <View className="w-28 h-28 rounded-full bg-primary-300 justify-center items-center">
-                    <Text
-                      className="text-white text-4xl font-extrabold"
-                      style={fonts.ecTextBody1}
-                    >
-                      {profile?.username
-                        ? profile.username.charAt(0).toUpperCase()
-                        : "T"}
-                    </Text>
-                  </View>
-                ) : (
-                  <Image
-                    source={{
-                      uri: `${API_URL}/profile/picture/${image}`,
-                    }}
-                    className="w-28 h-28 rounded-full"
-                  />
-                )}
-
-                <View className="absolute right-0 bottom-0 bg-primary-500 p-2 rounded-full">
-                  <MaterialIcons name="edit" size={18} color="white" />
-                </View>
-              </View>
+              <MaterialIcons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
-            <Text style={fonts.ecTextBody3} className="text-neutral-500 mt-2">
-              {imageUploading
-                ? "Uploading profile photo..."
-                : "Tap to change your profile photo"}
+            <Text style={fonts.ecTextHeader2} className="text-white">
+              Edit Profile
             </Text>
           </View>
-        </Card>
-      </View>
+        </View>
 
-      <EditProfileForm
-        profile={profile}
-        loading={loading}
-        navigation={navigation}
-        image={image}
-        imageUploading={imageUploading}
-      />
-    </ScrollView>
+        <View className="px-4 mt-4 mb-4">
+          <Card
+            variant="neutral"
+            title="Profile Photo"
+            icon={
+              <MaterialIcons name="photo-camera" size={20} color="#233D90" />
+            }
+            collapsible={false}
+            className="shadow-md"
+          >
+            <View className="items-center my-4">
+              <TouchableOpacity
+                onPress={showImageOptions}
+                disabled={imageUploading}
+              >
+                <View className="relative">
+                  {imageUploading ? (
+                    <View className="w-28 h-28 rounded-full bg-neutral-200 justify-center items-center">
+                      <ActivityIndicator size="large" color="#233D90" />
+                    </View>
+                  ) : !image ? (
+                    <View className="w-28 h-28 rounded-full bg-primary-300 justify-center items-center">
+                      <Text
+                        className="text-white text-4xl font-extrabold"
+                        style={fonts.ecTextBody1}
+                      >
+                        {profile?.username
+                          ? profile.username.charAt(0).toUpperCase()
+                          : "T"}
+                      </Text>
+                    </View>
+                  ) : (
+                    <Image
+                      source={{
+                        uri: `${API_URL}/profile/picture/${image}`,
+                      }}
+                      className="w-28 h-28 rounded-full"
+                    />
+                  )}
+
+                  <View className="absolute right-0 bottom-0 bg-primary-500 p-2 rounded-full">
+                    <MaterialIcons name="edit" size={18} color="white" />
+                  </View>
+                </View>
+              </TouchableOpacity>
+              <Text style={fonts.ecTextBody3} className="text-neutral-500 mt-2">
+                {imageUploading
+                  ? "Uploading profile photo..."
+                  : "Tap to change your profile photo"}
+              </Text>
+            </View>
+          </Card>
+        </View>
+
+        <EditProfileForm
+          profile={profile}
+          loading={loading}
+          navigation={navigation}
+          image={image}
+          imageUploading={imageUploading}
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
