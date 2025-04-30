@@ -23,7 +23,6 @@ import { traineeService } from "../../services/query/traineeService";
 import { gradingService } from "../../services/query/gradingService";
 import TextArea from "../common/TextArea";
 
-// Function to format current date and time to yyyy-MM-dd HH:mm:ss
 const getCurrentDateTime = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -40,7 +39,7 @@ const GradingAssessmentTaskModal = ({
   navigation,
   gradeModal,
   closeGradeModal,
-  traineeTaskData, // Data tugas trainee yang akan dinilai
+  traineeTaskData,
 }) => {
   //console.log("ini modal untuk grading: ", traineeTaskData);
   const [error, setError] = useState("");

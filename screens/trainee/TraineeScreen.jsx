@@ -98,24 +98,30 @@ const TraineeScreen = () => {
     const statusColor =
       percentage < 50 ? "warning" : percentage < 100 ? "info" : "success";
 
-    return (
-      <View className="mt-2">
-        <View className="flex-row justify-between mb-1">
+    // return (
+    // <View className="mt-2">
+    {
+      /* <View className="flex-row justify-between mb-1">
           <Text style={fonts.ecTextBody3} className="text-neutral-600">
             Assessment Status: {completedTasks}/{totalTasks} tasks
           </Text>
           <Text style={fonts.ecTextBody3} className="text-neutral-600">
             {Math.round(percentage)}%
           </Text>
-        </View>
-        <View className="h-2 bg-neutral-200 rounded-full overflow-hidden">
+        </View> */
+    }
+    {
+      /* <View className="h-2 bg-neutral-200 rounded-full overflow-hidden">
           <View
             className={`h-full bg-${statusColor}-500`}
             style={{ width: `${percentage}%` }}
           />
-        </View>
-      </View>
-    );
+        </View> */
+    }
+    {
+      /* </View> */
+    }
+    // );
   };
 
   const renderTraineeItem = ({ item }) => (

@@ -10,6 +10,7 @@ import TraineeDetailScreen from "../screens/trainee/TraineeDetailScreen";
 import AssessmentTaskScreen from "../screens/assessment/AssessmentTaskScreen";
 import DetailAssessmentTaskScreen from "../screens/assessment/DetailAssessmentTaskScreen";
 import GradingResultScreen from "../screens/assessment/GradingResultScreen";
+import WebViewScreen from "../screens/assessment/WebViewScreen";
 const Stack = createStackNavigator();
 const TrainerNavigator = () => {
   return (
@@ -45,6 +46,11 @@ const TrainerNavigator = () => {
         name="GradingResultScreen"
         component={GradingResultScreen}
         options={{ title: "Trainee Profile" }}
+      />
+      <Stack.Screen
+        name="WebViewScreen"
+        component={WebViewScreen}
+        options={{ title: "Web View" }}
       />
     </Stack.Navigator>
   );

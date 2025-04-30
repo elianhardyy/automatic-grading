@@ -58,6 +58,8 @@ const transformTaskData = (task) => {
     assessedTrainees: batchTask.assessedTrainees ?? 0,
     createdAt: batchTask.assignedDate || new Date().toISOString(),
     status: task.status || "ongoing",
+    ungradedCount: batchTask.ungradedCount,
+    gradedCount: batchTask.gradedCount,
   };
 };
 
@@ -76,6 +78,7 @@ const isTaskOngoing = (task) => {
 };
 
 const isTaskCompleted = (task) => {
+  console.log("task yang complete: ", task);
   try {
     const now = new Date();
     const dueDate = new Date(task.deadline); // Task's due date and time
@@ -84,8 +87,11 @@ const isTaskCompleted = (task) => {
     if (isNaN(dueDate.getTime())) {
       return false;
     }
-    // Completed if the current time is exactly the due date/time or later
-    return now >= dueDate;
+
+    return (
+      now >= dueDate ||
+      (task.gradedCount === task.ungradedCount && task.gradedCount > 0)
+    );
   } catch {
     return false; // Error during date parsing
   }
@@ -216,8 +222,8 @@ const TaskScreen = ({ navigation }) => {
       { label: "Name (A-Z)", value: "name-asc" },
       { label: "Name (Z-A)", value: "name-desc" },
       // Other options can be added here following the 'field-direction' pattern
-      // { label: "Due Date (Newest First)", value: "dueDate-desc" },
-      // { label: "Due Date (Oldest First)", value: "dueDate-asc" },
+      { label: "Due Date (Newest First)", value: "dueDate-desc" },
+      { label: "Due Date (Oldest First)", value: "dueDate-asc" },
     ],
     []
   );
@@ -233,8 +239,6 @@ const TaskScreen = ({ navigation }) => {
     setSortDirection(direction);
   };
 
-  // --- MODIFICATION START ---
-  // Step 1: Filter based on API results and search query
   const filteredTasksBase = useMemo(() => {
     let tasksToFilter = transformedTasks;
     if (searchQuery) {
@@ -543,7 +547,7 @@ const TaskScreen = ({ navigation }) => {
                 </View>
               </View>
               <View style={styles.filterRow}>
-                <View style={styles.filterColumn}>
+                {/* <View style={styles.filterColumn}>
                   <Text style={[fonts.ecTextBody3, styles.filterLabel]}>
                     Status
                   </Text>
@@ -554,7 +558,7 @@ const TaskScreen = ({ navigation }) => {
                     placeholder="All Status"
                     variant="rounded"
                   />
-                </View>
+                </View> */}
                 <View style={styles.filterColumn}>
                   <Text style={[fonts.ecTextBody3, styles.filterLabel]}>
                     Sort By

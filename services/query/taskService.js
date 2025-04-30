@@ -17,7 +17,7 @@ export const taskService = {
   },
   fetchTask: async (filter) => {
     try {
-      const response = await taskAPI.getTaskByme(filter);
+      const response = await taskAPI.getTasksByMe(filter);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: error.message };

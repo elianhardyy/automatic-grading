@@ -4,6 +4,7 @@ import profileReducer from "../services/slice/profileService";
 import { ongoingReducer } from "../services/slice/ongoing";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { persistStore, persistReducer } from "redux-persist";
+import { gradingReducer } from "../services/slice/grading";
 const persistConfig = {
   key: "root",
   storage: AsyncStorage,
@@ -17,6 +18,7 @@ export const store = configureStore({
     auth: authReducer,
     profile: profileReducer,
     ongoing: persistedReducer,
+    grading: gradingReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

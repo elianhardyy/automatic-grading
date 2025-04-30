@@ -9,7 +9,7 @@ export const taskAPI = {
   deleteTask: (taskId) => api.delete(`/task/${taskId}`),
   getTasksByMe: (filter = {}) =>
     api.get(`/task/tasks-by-me${buildQueryParams(filter)}`),
-  getTaskByme: (filter = {}) => taskAPI.getTasksByMe(filter),
+  //getTaskByme: (filter = {}) => taskAPI.getTasksByMe(filter),
 
   // --- Criteria ---
   createTaskCriteria: (criteriaData) =>

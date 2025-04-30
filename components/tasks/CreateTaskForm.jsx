@@ -312,14 +312,14 @@ const CreateTaskForm = ({ navigation, batchId, goBack }) => {
   return (
     <ScrollView className="flex-1 bg-white">
       <View className="p-4">
-        <View className="flex-row items-center mb-4">
+        {/* <View className="flex-row items-center mb-4">
           <TouchableOpacity onPress={handleBack} className="p-1 mr-2">
             <MaterialIcons name="arrow-back" size={20} color="#233D90" />
           </TouchableOpacity>
           <Text style={fonts.ecTextBody2} className="text-primary-500">
             Back to Batch Selection
           </Text>
-        </View>
+        </View> */}
 
         <Text style={fonts.ecTextHeader2M} className="text-neutral-800 mb-2">
           Create New Task
@@ -603,7 +603,7 @@ const CreateTaskForm = ({ navigation, batchId, goBack }) => {
 
                   <View>
                     <Input
-                      value={item.weight}
+                      value={String(item.weight)}
                       onChangeText={handleInputLimit(item.id)}
                       keyboardType="numeric"
                       className="h-10 px-2 py-0 border-t border-b border-neutral-300 bg-white"
@@ -626,6 +626,9 @@ const CreateTaskForm = ({ navigation, batchId, goBack }) => {
                         "weight",
                         String(currentWeight + 1)
                       );
+                      if (currentWeight >= 100) {
+                        handleUpdateCriteria(item.id, "weight", String(100));
+                      }
                     }}
                     className="h-10 w-10 bg-neutral-100 rounded-r-lg justify-center items-center border border-neutral-300"
                   >

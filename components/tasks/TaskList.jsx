@@ -107,8 +107,8 @@ const TaskList = ({
   };
 
   const getTaskStatusColor = (task) => {
-    const total = task.totalTrainees ?? 0;
-    const assessed = task.assessedTrainees ?? 0;
+    const total = task.ungradedCount ?? 0;
+    const assessed = task.gradedCount ?? 0;
     const ratio = total > 0 ? assessed / total : 0;
     let isOverdue = false;
     try {
@@ -124,8 +124,9 @@ const TaskList = ({
   };
 
   const renderTaskItem = ({ item }) => {
-    const total = item.totalTrainees ?? 0;
-    const assessed = item.assessedTrainees ?? 0;
+    console.log("ini raded count: ", item.ungradedCount);
+    const total = item.ungradedCount ?? 0;
+    const assessed = item.gradedCount ?? 0;
     const progressPercentage = total > 0 ? (assessed / total) * 100 : 0;
     const statusColor = getTaskStatusColor(item);
     let isOverdue = false;
@@ -217,7 +218,7 @@ const TaskList = ({
               </Text>
             </View>
           </View>
-
+          {/* 
           {total > 0 && (
             <View style={styles.progressBarContainer}>
               <View style={styles.progressBarTrack}>
@@ -232,10 +233,10 @@ const TaskList = ({
                 />
               </View>
             </View>
-          )}
+          )} */}
 
           <View style={styles.cardBottomRow}>
-            <Text
+            {/* <Text
               style={[fonts.ecTextCaption, styles.progressText]}
             >{`${assessed}/${total} assessed`}</Text>
             {isOverdue && progressPercentage < 100 && (
@@ -244,8 +245,8 @@ const TaskList = ({
                 color="alert"
                 size="small"
                 variant="filled"
-              />
-            )}
+              /> */}
+            {/* )} */}
             {progressPercentage === 100 && total > 0 && (
               <Badge
                 text="Completed"
@@ -383,7 +384,10 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     overflow: "hidden",
   },
-  progressBarFill: { height: "100%", borderRadius: 3 },
+  progressBarFill: {
+    height: "100%",
+    borderRadius: 3,
+  },
   cardBottomRow: {
     flexDirection: "row",
     justifyContent: "space-between",

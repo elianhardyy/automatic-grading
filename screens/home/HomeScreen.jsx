@@ -66,6 +66,7 @@ const HomeScreen = ({ navigation }) => {
     profile,
     loading: profileLoading,
     error: profileError,
+    pictureTrainer,
   } = useSelector((state) => state.profile); // Use profile state
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -191,9 +192,8 @@ const HomeScreen = ({ navigation }) => {
           const isOngoing = isTaskOngoing(task);
 
           // Basic progress calculation (replace with actual data if available)
-          const assessedCount = task.assessedCount || 0; // Placeholder - needs real data
-          const totalParticipants =
-            task.totalParticipants || batchTask?.participantCount || 1; // Placeholder
+          const assessedCount = batchTask?.gradedCount || 0; // Placeholder - needs real data
+          const totalParticipants = batchTask?.ungradedCount || 1; // Placeholder
 
           return {
             id: task.id,
@@ -320,7 +320,7 @@ const HomeScreen = ({ navigation }) => {
 
   // --- Render ---
   const renderProfileImage = () => {
-    const pictureUrl = profile?.profilePicture || profile?.picture;
+    const pictureUrl = profile?.profilePicture || pictureTrainer;
     if (profileLoading) {
       return (
         <Skeleton
@@ -422,7 +422,7 @@ const HomeScreen = ({ navigation }) => {
 
       <ScrollView
         className="flex-1 bg-neutral-100" // Match SafeAreaView background
-        contentContainerStyle={{ paddingTop: 60, paddingBottom: 40 }} // Adjust padding top for header+search, add bottom padding
+        contentContainerStyle={{ paddingTop: 80, paddingBottom: 40 }} // Adjust padding top for header+search, add bottom padding
         keyboardShouldPersistTaps="handled" // Dismiss keyboard on scroll tap
         refreshControl={
           // Add pull-to-refresh
@@ -587,7 +587,7 @@ const HomeScreen = ({ navigation }) => {
                   className="mb-3 bg-white border border-neutral-200 shadow-sm" // Style card
                   // Optional: Add action/footer for navigation to batch details
                 >
-                  <View className="flex-row items-center mb-2.5">
+                  {/* <View className="flex-row items-center mb-2.5">
                     <MaterialIcons name="group" size={14} color="#757575" />
                     <Text
                       className="text-neutral-600 text-sm ml-1.5"
@@ -596,7 +596,7 @@ const HomeScreen = ({ navigation }) => {
                       {batch.participantCount || 0} Trainees
                     </Text>
                     {/* Add more relevant batch info here if available */}
-                  </View>
+                  {/* </View>  */}
                   {/* Progress Bar (if applicable/available) */}
                   {batch.progressPercentage !== undefined && (
                     <View>
@@ -637,7 +637,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
           )}
           {/* Optional "View All Batches" Button */}
-          {!isInitialLoading &&
+          {/* {!isInitialLoading &&
             batchData?.data &&
             batchData.data.length > 3 && (
               <TouchableOpacity
@@ -648,7 +648,7 @@ const HomeScreen = ({ navigation }) => {
                   View All Batches
                 </Text>
               </TouchableOpacity>
-            )}
+            )} */}
         </View>
 
         {/* --- Recent Tasks Section --- */}
@@ -660,14 +660,14 @@ const HomeScreen = ({ navigation }) => {
             >
               Upcoming Tasks
             </Text>
-            <TouchableOpacity onPress={handleSeeAllTasks}>
+            {/* <TouchableOpacity onPress={handleSeeAllTasks}>
               <Text
                 className="text-primary-500 text-sm font-medium"
                 style={fonts.ecTextBody2}
               >
                 See All
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           {isInitialLoading ? (
@@ -782,7 +782,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
           )}
           {/* Optionally show a "View More" button */}
-          {!isInitialLoading && processedTasks.length > 3 && (
+          {/* {!isInitialLoading && processedTasks.length > 3 && (
             <TouchableOpacity
               onPress={handleSeeAllTasks}
               className="items-center mt-1 mb-2"
@@ -791,7 +791,7 @@ const HomeScreen = ({ navigation }) => {
                 View More Tasks
               </Text>
             </TouchableOpacity>
-          )}
+          )} */}
         </View>
 
         {/* --- Quick Actions Section --- */}

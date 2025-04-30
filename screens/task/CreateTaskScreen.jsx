@@ -166,14 +166,14 @@ const CreateTaskScreen = ({ navigation }) => {
       ) : showTaskTypeSelection ? (
         // Task type selection screen
         <View className="p-4">
-          <View className="flex-row items-center mb-4">
+          {/* <View className="flex-row items-center mb-4">
             <TouchableOpacity onPress={goBackToSelection} className="p-1 mr-2">
               <MaterialIcons name="arrow-back" size={20} color="#233D90" />
             </TouchableOpacity>
             <Text style={fonts.ecTextBody2} className="text-primary-500">
               Back to Batch Selection
             </Text>
-          </View>
+          </View> */}
 
           <Text style={fonts.ecTextHeader2M} className="text-neutral-800 mb-6">
             Select Task Type

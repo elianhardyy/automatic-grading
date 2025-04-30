@@ -783,7 +783,7 @@ const EditTaskForm = ({ taskData, navigation, onCancel, onSuccess }) => {
 
                   <View>
                     <Input
-                      value={item.weight}
+                      value={String(item.weight)}
                       onChangeText={handleInputLimit(item.id)}
                       keyboardType="numeric"
                       className="h-10 px-2 py-0 border-t border-b border-neutral-300 bg-white"
@@ -806,6 +806,9 @@ const EditTaskForm = ({ taskData, navigation, onCancel, onSuccess }) => {
                         "weight",
                         String(currentWeight + 1)
                       );
+                      if (currentWeight >= 100) {
+                        handleUpdateCriteria(item.id, "weight", String(100));
+                      }
                     }}
                     className="h-10 w-10 bg-neutral-100 rounded-r-lg justify-center items-center border border-neutral-300"
                   >

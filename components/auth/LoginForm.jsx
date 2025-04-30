@@ -38,13 +38,7 @@ const LoginForm = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    validateField();
-
-    setIsFormValid(
-      username.trim() !== "" &&
-        password.trim() !== "" &&
-        Object.keys(errors).length === 0
-    );
+    validateForm();
   }, [username, password]);
 
   useEffect(() => {
@@ -56,40 +50,33 @@ const LoginForm = ({ navigation }) => {
     }
   }, [error]);
 
-  const validateField = (fieldName = null) => {
-    const newErrors = { ...errors };
+  const validateForm = () => {
+    const newErrors = {};
 
-    const validateUsername = () => {
-      if (!username.trim()) {
-        newErrors.username = "Username is required";
-      } else {
-        delete newErrors.username;
-      }
-    };
-
-    const validatePassword = () => {
-      if (!password.trim()) {
-        newErrors.password = "Password is required";
-      } else {
-        delete newErrors.password;
-      }
-    };
-    if (
-      fieldName === "username" ||
-      (fieldName === null && touchedFields.username)
-    ) {
-      validateUsername();
+    // Username validation
+    if (!username.trim()) {
+      newErrors.username = "Username is required";
+    } else if (username.length < 5) {
+      newErrors.username = "Username should contains 5 characters or more";
     }
 
-    if (
-      fieldName === "password" ||
-      (fieldName === null && touchedFields.password)
-    ) {
-      validatePassword();
+    // Password validation
+    if (!password.trim()) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password should contains 8 characters or more";
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    // Form is valid when there are no errors and both fields have values
+    const valid =
+      Object.keys(newErrors).length === 0 &&
+      username.trim() !== "" &&
+      password.trim() !== "";
+
+    setIsFormValid(valid);
+    return valid;
   };
 
   const handleFieldBlur = (fieldName) => {
@@ -97,7 +84,6 @@ const LoginForm = ({ navigation }) => {
       ...touchedFields,
       [fieldName]: true,
     });
-    validateField(fieldName);
   };
 
   const validate = () => {
@@ -106,7 +92,7 @@ const LoginForm = ({ navigation }) => {
       password: true,
     });
 
-    return validateField();
+    return validateForm();
   };
 
   const navigateToForgotPassword = () => {
@@ -129,11 +115,13 @@ const LoginForm = ({ navigation }) => {
       try {
         await dispatch(authService.loginUser(credentials)).unwrap();
       } catch (err) {
+        // Error handling is already done in the useEffect
       } finally {
         setIsLoading(false);
       }
     }
   };
+
   return (
     <View className="w-full">
       <InputGroup

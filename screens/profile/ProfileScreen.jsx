@@ -450,7 +450,7 @@ const ProfileScreen = ({ navigation }) => {
           </Card>
         </View>
 
-        <View className="px-4 mb-8">
+        {/* <View className="px-4 mb-8">
           <Card
             variant="base"
             title="Application Information"
@@ -481,7 +481,7 @@ const ProfileScreen = ({ navigation }) => {
               />
             </View>
           </Card>
-        </View>
+        </View> */}
       </ScrollView>
     </SafeAreaView>
   );

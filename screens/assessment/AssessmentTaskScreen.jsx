@@ -304,9 +304,22 @@ const AssessmentTaskScreen = ({ route, navigation }) => {
       {/* Header */}
       <View style={styles.headerContainer}>
         <View style={styles.headerTopRow}>
-          <Text style={[fonts.ecTextHeader2M, styles.headerTitle]}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+            accessibilityLabel="Go back"
+          >
+            <MaterialIcons name="arrow-back" size={24} color="#FFF" />
+          </TouchableOpacity>
+
+          <Text
+            style={[fonts.ecTextHeader2M, styles.headerTitle]}
+            numberOfLines={1}
+          >
             Trainees' TraineeTask
           </Text>
+
+          <View style={styles.placeholderView} />
         </View>
       </View>
 
@@ -621,6 +634,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     elevation: 8,
+  },
+  placeholderView: {
+    width: 40, // Same width as back button for balanced layout
+  },
+  backButton: {
+    paddingHorizontal: 8,
+    marginLeft: -8, // To offset the padding and align with container edge
   },
 });
 
