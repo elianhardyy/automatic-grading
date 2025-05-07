@@ -575,56 +575,51 @@ const HomeScreen = ({ navigation }) => {
               className="mb-3"
             />
           ) : batchData?.data && batchData.data.length > 0 ? (
-            batchData.data.slice(0, 3).map(
-              (
-                batch // Limit displayed batches initially
-              ) => (
-                <Card
-                  key={batch.id}
-                  title={batch.name}
-                  variant="primary" // Use a consistent variant or base it on data
-                  collapsible={false} // Keep batch info visible
-                  className="mb-3 bg-white border border-neutral-200 shadow-sm" // Style card
-                  // Optional: Add action/footer for navigation to batch details
-                >
-                  {/* <View className="flex-row items-center mb-2.5">
-                    <MaterialIcons name="group" size={14} color="#757575" />
-                    <Text
-                      className="text-neutral-600 text-sm ml-1.5"
-                      style={fonts.ecTextBody3}
-                    >
-                      {batch.participantCount || 0} Trainees
-                    </Text>
-                    {/* Add more relevant batch info here if available */}
-                  {/* </View>  */}
-                  {/* Progress Bar (if applicable/available) */}
-                  {batch.progressPercentage !== undefined && (
-                    <View>
-                      <View className="flex-row justify-between mb-1">
-                        <Text
-                          className="text-neutral-500 text-xs"
-                          style={fonts.ecTextBody3M}
-                        >
-                          Completion
-                        </Text>
-                        <Text
-                          className="text-neutral-500 text-xs font-medium"
-                          style={fonts.ecTextBody3M}
-                        >
-                          {Math.round(batch.progressPercentage)}%
-                        </Text>
-                      </View>
-                      <View className="h-1.5 w-full bg-neutral-200 rounded-full overflow-hidden">
-                        <View
-                          className={`h-full bg-success-500 rounded-full`}
-                          style={{ width: `${batch.progressPercentage || 0}%` }}
-                        />
-                      </View>
+            batchData.data.slice(0, 3).map((batch, index) => (
+              <Card
+                key={batch.id}
+                title={batch.name}
+                variant="primary" // Use a consistent variant or base it on data
+                collapsible={false} // Keep batch info visible
+                className="mb-3 bg-white border border-neutral-200 shadow-sm" // Style card
+                // Optional: Add action/footer for navigation to batch details
+              >
+                <View className="flex-row items-center mb-2.5">
+                  <MaterialIcons name="group" size={14} color="#757575" />
+                  <Text
+                    className="text-neutral-600 text-sm ml-1.5"
+                    style={fonts.ecTextBody3}
+                  >
+                    {index === 0 ? "2" : "0"} Trainees
+                  </Text>
+                </View>
+                {/* Progress Bar (if applicable/available) */}
+                {batch.progressPercentage !== undefined && (
+                  <View>
+                    <View className="flex-row justify-between mb-1">
+                      <Text
+                        className="text-neutral-500 text-xs"
+                        style={fonts.ecTextBody3M}
+                      >
+                        Completion
+                      </Text>
+                      <Text
+                        className="text-neutral-500 text-xs font-medium"
+                        style={fonts.ecTextBody3M}
+                      >
+                        {Math.round(batch.progressPercentage)}%
+                      </Text>
                     </View>
-                  )}
-                </Card>
-              )
-            )
+                    <View className="h-1.5 w-full bg-neutral-200 rounded-full overflow-hidden">
+                      <View
+                        className={`h-full bg-success-500 rounded-full`}
+                        style={{ width: `${batch.progressPercentage || 0}%` }}
+                      />
+                    </View>
+                  </View>
+                )}
+              </Card>
+            ))
           ) : (
             <View className="items-center py-5">
               <MaterialIcons name="upcoming" size={32} color="#9A9A9A" />
@@ -637,7 +632,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
           )}
           {/* Optional "View All Batches" Button */}
-          {/* {!isInitialLoading &&
+          {!isInitialLoading &&
             batchData?.data &&
             batchData.data.length > 3 && (
               <TouchableOpacity
@@ -648,7 +643,7 @@ const HomeScreen = ({ navigation }) => {
                   View All Batches
                 </Text>
               </TouchableOpacity>
-            )} */}
+            )}
         </View>
 
         {/* --- Recent Tasks Section --- */}
@@ -660,14 +655,14 @@ const HomeScreen = ({ navigation }) => {
             >
               Upcoming Tasks
             </Text>
-            {/* <TouchableOpacity onPress={handleSeeAllTasks}>
+            <TouchableOpacity onPress={handleSeeAllTasks}>
               <Text
                 className="text-primary-500 text-sm font-medium"
                 style={fonts.ecTextBody2}
               >
                 See All
               </Text>
-            </TouchableOpacity> */}
+            </TouchableOpacity>
           </View>
 
           {isInitialLoading ? (
@@ -754,19 +749,21 @@ const HomeScreen = ({ navigation }) => {
                             name="warning-amber"
                             size={10}
                             color="#E8A700"
-                          />{" "}
+                          />
                           Deadline Near
                         </Text>
                       </View>
                     )}
                   </View>
                   {/* Mini Progress Bar */}
-                  {/* <View className="h-1 w-full bg-neutral-200 rounded-full overflow-hidden mt-1">
-                        <View
-                            className={`h-full ${task.isUrgent ? 'bg-warning-500' : 'bg-info-500'} rounded-full`}
-                            style={{ width: `${task.progress}%` }}
-                        />
-                    </View> */}
+                  <View className="h-1 w-full bg-neutral-200 rounded-full overflow-hidden mt-1">
+                    <View
+                      className={`h-full ${
+                        task.isUrgent ? "bg-warning-500" : "bg-info-500"
+                      } rounded-full`}
+                      style={{ width: `${task.progress}%` }}
+                    />
+                  </View>
                 </Card>
               </TouchableOpacity>
             ))
@@ -782,7 +779,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
           )}
           {/* Optionally show a "View More" button */}
-          {/* {!isInitialLoading && processedTasks.length > 3 && (
+          {!isInitialLoading && processedTasks.length > 3 && (
             <TouchableOpacity
               onPress={handleSeeAllTasks}
               className="items-center mt-1 mb-2"
@@ -791,7 +788,7 @@ const HomeScreen = ({ navigation }) => {
                 View More Tasks
               </Text>
             </TouchableOpacity>
-          )} */}
+          )}
         </View>
 
         {/* --- Quick Actions Section --- */}

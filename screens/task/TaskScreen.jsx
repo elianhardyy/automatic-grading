@@ -206,6 +206,7 @@ const TaskScreen = ({ navigation }) => {
       label: category.name,
       value: category.name,
     }));
+    //console.log("ini category: ", categoryOpts);
     return [...defaultOption, ...categoryOpts];
   }, [categoriesData]);
 
