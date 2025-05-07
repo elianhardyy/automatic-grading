@@ -52,7 +52,7 @@ const transformTaskData = (task) => {
     batch: batchTask.batchName || "N/A",
     batchNumber: batchTask.batchNumber || "",
     batchId: batchTask.batchId || "",
-    deadline: batchTask.dueDate || new Date().toISOString(), // Keep original due date string/object
+    deadline: batchTask.dueDate || new Date().toISOString(),
     assignedDate: batchTask.assignedDate || new Date().toISOString(),
     totalTrainees: batchTask.totalTrainees ?? 0,
     assessedTrainees: batchTask.assessedTrainees ?? 0,
@@ -81,9 +81,8 @@ const isTaskCompleted = (task) => {
   console.log("task yang complete: ", task);
   try {
     const now = new Date();
-    const dueDate = new Date(task.deadline); // Task's due date and time
+    const dueDate = new Date(task.deadline);
 
-    // If the due date is invalid, it cannot be completed based on deadline
     if (isNaN(dueDate.getTime())) {
       return false;
     }
@@ -93,10 +92,9 @@ const isTaskCompleted = (task) => {
       (task.gradedCount === task.ungradedCount && task.gradedCount > 0)
     );
   } catch {
-    return false; // Error during date parsing
+    return false;
   }
 };
-// --- MODIFICATION END ---
 
 const TaskScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -221,7 +219,6 @@ const TaskScreen = ({ navigation }) => {
     () => [
       { label: "Name (A-Z)", value: "name-asc" },
       { label: "Name (Z-A)", value: "name-desc" },
-      // Other options can be added here following the 'field-direction' pattern
       { label: "Due Date (Newest First)", value: "dueDate-desc" },
       { label: "Due Date (Oldest First)", value: "dueDate-asc" },
     ],
@@ -249,24 +246,21 @@ const TaskScreen = ({ navigation }) => {
     return tasksToFilter;
   }, [transformedTasks, searchQuery]);
 
-  // Step 2: Apply tab filtering logic (client-side) based on deadline time
   const filteredTasks = useMemo(() => {
     if (selectedTab === "all") {
       return filteredTasksBase;
     }
     return filteredTasksBase.filter((task) => {
       if (selectedTab === "ongoing") {
-        return isTaskOngoing(task); // Use new time-based helper
+        return isTaskOngoing(task);
       }
       if (selectedTab === "completed") {
-        return isTaskCompleted(task); // Use new time-based helper
+        return isTaskCompleted(task);
       }
-      return true; // Should not happen with current tabs
+      return true;
     });
   }, [filteredTasksBase, selectedTab]);
 
-  // Step 3: Calculate counts for badges based on the base list and new helpers
-  // Every valid task should fall into exactly one category now.
   const countAll = useMemo(() => filteredTasksBase.length, [filteredTasksBase]);
   const countOngoing = useMemo(
     () => filteredTasksBase.filter(isTaskOngoing).length,
@@ -437,7 +431,6 @@ const TaskScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Filter Toggle Button */}
       <TouchableOpacity
         style={styles.filterToggleButton}
         onPress={() => setIsFilterVisible(!isFilterVisible)}
@@ -456,7 +449,6 @@ const TaskScreen = ({ navigation }) => {
         />
       </TouchableOpacity>
 
-      {/* Filter Panel */}
       {isFilterVisible && (
         <View style={styles.filterPanel}>
           {isFilterDataLoading ? (
@@ -519,7 +511,6 @@ const TaskScreen = ({ navigation }) => {
             </View>
           ) : (
             <>
-              {/* Filter controls */}
               <View style={styles.filterRow}>
                 <View style={styles.filterColumn}>
                   <Text style={[fonts.ecTextBody3, styles.filterLabel]}>
@@ -547,7 +538,7 @@ const TaskScreen = ({ navigation }) => {
                 </View>
               </View>
               <View style={styles.filterRow}>
-                {/* <View style={styles.filterColumn}>
+                <View style={styles.filterColumn}>
                   <Text style={[fonts.ecTextBody3, styles.filterLabel]}>
                     Status
                   </Text>
@@ -558,7 +549,7 @@ const TaskScreen = ({ navigation }) => {
                     placeholder="All Status"
                     variant="rounded"
                   />
-                </View> */}
+                </View>
                 <View style={styles.filterColumn}>
                   <Text style={[fonts.ecTextBody3, styles.filterLabel]}>
                     Sort By
@@ -593,7 +584,6 @@ const TaskScreen = ({ navigation }) => {
         </View>
       )}
 
-      {/* Task List */}
       <View style={styles.listContainer}>
         {isOverallError ? (
           <View style={styles.errorContainer}>
@@ -615,7 +605,6 @@ const TaskScreen = ({ navigation }) => {
           </View>
         ) : (
           <TaskList
-            // Pass the final client-side filtered tasks for the current tab
             tasks={filteredTasks}
             isLoading={isOverallLoading}
             isRefetching={isRefetching}
@@ -634,7 +623,6 @@ const TaskScreen = ({ navigation }) => {
         )}
       </View>
 
-      {/* FAB */}
       {!isFilterVisible && (
         <TouchableOpacity
           style={styles.fab}
@@ -648,7 +636,6 @@ const TaskScreen = ({ navigation }) => {
   );
 };
 
-// Styles remain the same
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#F9FAFB" },
   headerContainer: {

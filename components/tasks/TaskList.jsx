@@ -218,7 +218,7 @@ const TaskList = ({
               </Text>
             </View>
           </View>
-          {/* 
+
           {total > 0 && (
             <View style={styles.progressBarContainer}>
               <View style={styles.progressBarTrack}>
@@ -233,10 +233,10 @@ const TaskList = ({
                 />
               </View>
             </View>
-          )} */}
+          )}
 
           <View style={styles.cardBottomRow}>
-            {/* <Text
+            <Text
               style={[fonts.ecTextCaption, styles.progressText]}
             >{`${assessed}/${total} assessed`}</Text>
             {isOverdue && progressPercentage < 100 && (
@@ -245,8 +245,8 @@ const TaskList = ({
                 color="alert"
                 size="small"
                 variant="filled"
-              /> */}
-            {/* )} */}
+              />
+            )}
             {progressPercentage === 100 && total > 0 && (
               <Badge
                 text="Completed"

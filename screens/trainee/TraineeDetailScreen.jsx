@@ -221,19 +221,19 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
           <View className="flex-row items-center mb-4">
             <Button
               title="Back"
-              variant="text" // Use text variant for less emphasis
+              variant="text"
               color="primary"
               onPress={onBack}
               icon={
                 <MaterialIcons name="arrow-back" size={24} color="#233D90" />
               }
               iconPosition="left"
-              className="pl-0 pr-2 py-1" // Adjust padding for text button
+              className="pl-0 pr-2 py-1"
             />
             <Text
               style={fonts.ecTextHeader2M}
-              className="text-neutral-800" // Removed ml-2 as button padding adjusted
-              numberOfLines={1} // Prevent long names from breaking layout
+              className="text-neutral-800"
+              numberOfLines={1}
               ellipsizeMode="tail"
             >
               {traineeData.name}'s Details
@@ -291,7 +291,7 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
                   {traineeData.address || "-"}
                 </Text>
               </View>
-              {/* <View className="flex-row">
+              <View className="flex-row">
                 <Text
                   style={fonts.ecTextBody2}
                   className="text-neutral-600 w-24"
@@ -304,8 +304,8 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
                 >
                   {completedTasks}/{totalTasks} tasks graded
                 </Text>
-              </View> */}
-              {/* <View className="flex-row">
+              </View>
+              <View className="flex-row">
                 <Text
                   style={fonts.ecTextBody2}
                   className="text-neutral-600 w-24"
@@ -321,12 +321,11 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
                 >
                   {traineeData.isActive ? "Active" : "Inactive"}
                 </Text>
-              </View> */}
+              </View>
             </View>
           </Card>
 
-          {/* Performance Overview Card */}
-          {/* <Card
+          <Card
             title="Performance Overview"
             variant="info"
             className="mb-4"
@@ -340,21 +339,18 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
             >
               Average score based on {completedTasks} graded task(s).
             </Text>
-          </Card> */}
+          </Card>
 
           {/* Task Assessments Card */}
-          {/* <Card */}
-          {/* title="Task Assessments"
+          <Card
+            title="Task Assessments"
             variant="primary"
             className="mb-4"
             icon={<MaterialIcons name="assignment" size={20} color="#233D90" />}
             initiallyExpanded={false} // Collapse this by default maybe?
           >
             {traineeTasks.length > 0 ? (
-              <View className="mb-2">
-                
-                {traineeTasks.map(renderTaskItem)}
-              </View>
+              <View className="mb-2">{traineeTasks.map(renderTaskItem)}</View>
             ) : (
               <View className="py-4 items-center">
                 <Text style={fonts.ecTextBody2} className="text-neutral-500">
@@ -372,13 +368,12 @@ const TraineeDetailScreen = ({ trainee, onBack }) => {
                     <MaterialIcons name="add-task" size={20} color="#FFFFFF" />
                   } // More specific icon?
                   iconPosition="left"
-                  // onPress={() => { /* Navigate to grading screen? */}
-          {/* // disabled={completedTasks === totalTasks} // Disable if all graded */}
-          {/* /> */}
-
-          {/* </View> */}
-          {/* )} */}
-          {/* </Card> */}
+                  // onPress={() => { /* Navigate to grading screen?
+                  // disabled={completedTasks === totalTasks} // Disable if all graded
+                />
+              </View>
+            )}
+          </Card>
         </View>
       </ScrollView>
     </SafeAreaView>
