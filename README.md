@@ -50,13 +50,13 @@ Images can enhance your README by providing visual documentation or examples. He
 
 #### Sample Image
 
-![Login Screen](images/loginscreen.jpeg)
-![Home Screen](images/homescreen.jpeg)
-![Task Screen](images/taskscreen.jpeg)
-![Trainee Screen](images/traineescreen.jpeg)
-![Profile Screen](images/profilescreen.jpeg)
-![Grading Screen](images/grading-resultscreen.jpeg)
-![Validation Screen](images/validation-example.jpeg)
+<img src="images/loginscreen.jpeg" width="300">
+<img src="images/homescreen.jpeg" width="300">
+<img src="images/taskscreen.jpeg" width="300">
+<img src="images/traineescreen.jpeg" width="300">
+<img src="images/profilescreen.jpeg" width="300">
+<img src="images/grading-resultscreen.jpeg" width="300">
+<img src="images/validation-example.jpeg" width="300">
 
 ## License
 
