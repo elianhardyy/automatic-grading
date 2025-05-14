@@ -50,7 +50,7 @@ Images can enhance your README by providing visual documentation or examples. He
 
 #### Sample Image
 
-![width=10cm, height=25cm][Login Screen](images/loginscreen.jpeg)
+![Login Screen](images/loginscreen.jpeg)
 ![Home Screen](images/homescreen.jpeg)
 ![Task Screen](images/taskscreen.jpeg)
 ![Trainee Screen](images/traineescreen.jpeg)
