@@ -9,6 +9,7 @@
 
 ## Technologies Used
 
+- **AI** : Gemini AI
 - **Backend**: Spring Boot (Java)  
 - **Frontend Web**: React.js  
 - **Frontend Mobile**: React Native
