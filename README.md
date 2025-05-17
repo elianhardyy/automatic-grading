@@ -17,13 +17,11 @@
 ## Features
 
 - 🚀 **Easy Repository Integration** – Grade code by pasting GitHub or GitLab repository URLs  
-- 🔍 **Automated Testing** – Runs predefined test suites against submitted code  
 - 🧠 **Code Quality Analysis** – Evaluates code style, complexity, and best practices  
 - 🧩 **Plagiarism Detection** – Compares submissions against a database to detect potential plagiarism  
 - 📝 **Customizable Rubrics** – Create and use custom grading criteria for different assignments  
 - 📦 **Batch Processing** – Grade multiple submissions simultaneously  
 - 📊 **Detailed Reports** – Generate comprehensive feedback reports for students  
-- 🏫 **LMS Integration** – Compatible with popular Learning Management Systems
 
 ## Installation
 
