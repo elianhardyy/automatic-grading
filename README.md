@@ -5,7 +5,7 @@ Automatic Grading is an application designed to streamline the assessment proces
 Project Video: <a href="https://elianha.my.id/automatic-grading/" target="_blank" rel="noopener noreferrer">automatic-grading</a>
 
 ## Technology
-The stack we use:
+The stack we used:
 - **Backend**: Spring Boot Java
 - **Fronted Web** : React JS
 - **Frontend Mobile** : React Native
