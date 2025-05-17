@@ -284,7 +284,6 @@ const CreateTaskForm = ({ navigation, batchId, goBack }) => {
         weight: parseInt(item.weight, 10) || 1,
       })),
     };
-    console.log("payload: ", payload);
     mutate(payload);
   };
 
