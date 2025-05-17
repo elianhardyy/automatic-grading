@@ -2,7 +2,7 @@
 
 Automatic Grading is an application designed to streamline the assessment process for programming assignments. It allows instructors to grade student submissions by simply pasting a GitHub or GitLab repository link. The application automatically clones the repository, runs tests, analyzes code quality, and generates a comprehensive grade report.
 
-Project Video: [automatic-grading](https://elianha.my.id/automatic-grading/)
+Project Video: <a href="https://elianha.my.id/automatic-grading/" target="_blank" rel="noopener noreferrer">automatic-grading</a>
 
 ## Technology
 The stack we use:
