@@ -67,15 +67,6 @@ npm run android
 <img src="images/profilescreen.jpeg" width="300">
 <img src="images/grading-resultscreen.jpeg" width="300">
 <img src="images/validation-example.jpeg" width="300">
-## Screenshots
-
-<img src="images/loginscreen.jpeg" width="300">
-<img src="images/homescreen.jpeg" width="300">
-<img src="images/taskscreen.jpeg" width="300">
-<img src="images/traineescreen.jpeg" width="300">
-<img src="images/profilescreen.jpeg" width="300">
-<img src="images/grading-resultscreen.jpeg" width="300">
-<img src="images/validation-example.jpeg" width="300">
 
 ## License
 
