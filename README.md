@@ -38,7 +38,7 @@ cp .env.example .env
 # Edit .env with your specific settings
 
 # Start the application
-npm start
+npm run android
 ```
 
 ## Usage
