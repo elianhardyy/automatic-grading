@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:alpine
+    container_name: postgres-automatic-grading
+    restart: always
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - automatic-grading-network
+
+  redis:
+    image: redis:alpine
+    container_name: redis-automatic-grading
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - automatic-grading-network
+
+  automatic-grading:
+    image: israasmaranda/automatic-grading:latest # edit your username
+    container_name: automatic-grading-app
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: ${automatic_grading}
+      DATABASE_HOST: postgres-automatic-grading
+      DATABASE_PORT: 5432
+      REDIS_HOST: redis-automatic-grading
+      REDIS_PORT: 6379
+      SECRET_KEY: ${SECRET_KEY} # edit your secret key
+      EXPIRATION_TIME: ${EXPIRATION_TIME} # edit your exp time
+      GEMINI_API_KEY: ${GEMINI_API_KEY} # edit your gemini api
+      GEMINI_MODEL_NAME: ${GEMINI_MODEL_NAME}
+      GITLAB_ACCESS_TOKEN: ${GITLAB_ACCESS_TOKEN} # edit your gitlab
+      GITHUB_ACCESS_TOKEN: ${GITHUB_ACCESS_TOKEN} # edit your github
+      GMAIL_MAIL: ${GMAIL_MAIL} # edit your email
+      GMAIL_PASSWORD: ${GMAIL_PASSWORD} # edit your gmail password
+      FE_URL: ${FE_URL}
+    ports:
+      - "8081:8081"
+    networks:
+      - automatic-grading-network
+
+networks:
+  automatic-grading-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:

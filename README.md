@@ -14,6 +14,31 @@
 - **Frontend Web**: React.js
 - **Frontend Mobile**: React Native
 
+## Run Server
+
+📦 **Cara Menjalankan**
+
+1. Pull image from Docker Hub
+
+```
+docker pull elianhardiawan/automatic-grading:latest
+
+```
+
+2. Run container
+
+```
+docker run -p 8083:8083 elianhardiawan/automatic-grading:latest
+
+```
+
+3. Up docker-compose
+
+```
+docker-compose up -d
+
+```
+
 ## Features
 
 - 🚀 **Easy Repository Integration** – Grade code by pasting GitHub or GitLab repository URLs
